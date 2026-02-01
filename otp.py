@@ -676,11 +676,17 @@ async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
     countries = []
     keyboard = []
     
+    # ✅ FIXED: Show countries with sessions (even if quantity is 0 initially)
     for country, info in data["accounts"].items():
-        if info.get("quantity", 0) > 0:
+        session_count = len(info.get("sessions", []))
+        quantity = info.get("quantity", 0)
+        
+        # Show if either has quantity OR has sessions available
+        if quantity > 0 or session_count > 0:
             countries.append(country)
+            display_qty = max(quantity, session_count)  # Show higher count
             keyboard.append([InlineKeyboardButton(
-                f"💎 {country.upper()} ({info['quantity']} available) - {info['price']} INR",
+                f"💎 {country.upper()} ({display_qty} available) - {info['price']} INR",
                 callback_data=f"country_{country}"
             )])
     
@@ -689,7 +695,7 @@ async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = "📭 *No accounts available currently!*"
     else:
         text = "🌍 *Choose Country:*\n\n" + \
-               "\n".join([f"• *{c.upper()}*: {data['accounts'][c]['quantity']} - `{data['accounts'][c]['price']} INR`" 
+               "\n".join([f"• *{c.upper()}*: {max(data['accounts'][c]['quantity'], len(data['accounts'][c].get('sessions', [])))} - `{data['accounts'][c]['price']} INR`" 
                          for c in countries])
     
     keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="main_menu")])
@@ -718,11 +724,14 @@ async def show_account_details(update: Update, context: ContextTypes.DEFAULT_TYP
     price = account_info["price"]
     balance = get_user_data(user_id)["balance"]
     
+    # ✅ Show session count if available
+    available = max(account_info["quantity"], len(account_info.get("sessions", [])))
+    
     text = f"""
 📱 *{country.upper()} Virtual Account*
 
 💰 *Price:* `{price} INR`
-📊 *Available:* `{account_info['quantity']}`
+📊 *Available:* `{available}`
 💳 *Your Balance:* `{balance} INR`
 
 ✅ *Fresh & Verified*
@@ -756,7 +765,7 @@ async def process_buy_number(update: Update, context: ContextTypes.DEFAULT_TYPE)
     account_info = data["accounts"][country]
     price = account_info["price"]
     balance = get_user_data(user_id)["balance"]
-    available = account_info["quantity"]
+    available = max(account_info["quantity"], len(account_info.get("sessions", [])))
     
     text = f"""
 🛒 *Purchase {country.upper()}*
@@ -856,17 +865,14 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("❌ Insufficient balance!", show_alert=True)
         return
     
-    if account_info["quantity"] < quantity:
+    # ✅ Use session count if quantity is 0
+    available_sessions = account_info.get("sessions", [])
+    if len(available_sessions) < quantity:
         await query.answer("❌ Not enough accounts!", show_alert=True)
         return
     
-    sessions = account_info.get("sessions", [])
-    if len(sessions) < quantity:
-        await query.answer("❌ Not enough sessions!", show_alert=True)
-        return
-    
-    purchased_sessions = sessions[:quantity]
-    remaining_sessions = sessions[quantity:]
+    purchased_sessions = available_sessions[:quantity]
+    remaining_sessions = available_sessions[quantity:]
     
     data["users"][str(user_id)]["balance"] -= price
     purchase_record = {
@@ -879,7 +885,8 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     data["users"][str(user_id)]["purchases"].append(purchase_record)
     
-    account_info["quantity"] -= quantity
+    # ✅ Update quantity properly
+    account_info["quantity"] = max(0, account_info["quantity"] - quantity)
     account_info["sessions"] = remaining_sessions
     
     save_data(data)
@@ -1801,6 +1808,7 @@ async def handle_country_input(update: Update, context: ContextTypes.DEFAULT_TYP
         set_user_state(user_id, WAITING_FOR_ADD_MORE_SESSIONS, {"country": country, "price": existing_info['price']})
         return WAITING_FOR_ADD_MORE_SESSIONS
     
+    # ✅ FIXED: Just set state, don't create country here
     set_user_state(user_id, WAITING_FOR_PRICE, {"country": country})
     
     text = f"""
@@ -1868,15 +1876,21 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         state = get_user_state(user_id)
         country = state["data"]["country"]
         
+        # ✅ FIXED: Create or update country ONLY here, then save immediately
         if country not in data["accounts"]:
             data["accounts"][country] = {
                 "price": price,
                 "quantity": 0,
                 "sessions": []
             }
+            logger.info(f"[COUNTRY CREATED] {country} with price {price}")
         else:
             data["accounts"][country]["price"] = price
+            logger.info(f"[PRICE UPDATED] {country} to {price}")
+        
+        # ✅ CRITICAL: Save immediately after creating/updating
         save_data(data)
+        logger.info(f"[DATA SAVED] After creating/updating {country}")
         
         set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": price})
         
@@ -1907,12 +1921,14 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         state = get_user_state(user_id)
         country = state["data"]["country"]
         clear_user_state(user_id)
-        await update.message.reply_text(
-            f"✅ *Completed for {country}!*\n\n" +
-            "\n".join([f"• *{c}*: {info['quantity']} - {info['price']} INR" 
-                      for c, info in data["accounts"].items()]),
-            parse_mode='Markdown'
-        )
+        
+        # ✅ Show summary with all countries
+        final_text = f"✅ *Completed for {country}!*\n\n"
+        final_text += "📊 *All Countries:*\n\n"
+        final_text += "\n".join([f"• *{c.upper()}*: {max(info['quantity'], len(info.get('sessions', [])))} - {info['price']} INR" 
+                      for c, info in data["accounts"].items()])
+        
+        await update.message.reply_text(final_text, parse_mode='Markdown')
         return ConversationHandler.END
     
     state = get_user_state(user_id)
@@ -1938,7 +1954,10 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         
         data["accounts"][country]["sessions"].append(session_data)
         data["accounts"][country]["quantity"] += 1
+        
+        # ✅ CRITICAL: Save immediately after adding session
         save_data(data)
+        logger.info(f"[SESSION ADDED] {country} - Total: {data['accounts'][country]['quantity']}")
         
         await log_session_added(context, country, 1, price, phone_number)
         
@@ -2397,7 +2416,7 @@ async def owner_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_revenue = sum(purchase["price"] for user in data["users"].values() 
                        for purchase in user["purchases"] if purchase.get("status") == "completed")
     
-    available_accounts = sum(info["quantity"] for info in data["accounts"].values())
+    available_accounts = sum(max(info["quantity"], len(info.get("sessions", []))) for info in data["accounts"].values())
     
     text = f"""
 📊 *Bot Statistics*
@@ -2412,8 +2431,9 @@ async def owner_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     
     for country, info in data["accounts"].items():
-        if info["quantity"] > 0:
-            text += f"\n• *{country}*: `{info['quantity']}` - `{info['price']} INR`"
+        display_qty = max(info["quantity"], len(info.get("sessions", [])))
+        if display_qty > 0:
+            text += f"\n• *{country.upper()}*: `{display_qty}` - `{info['price']} INR`"
     
     text += f"\n\n⏰ `{datetime.now().strftime('%H:%M %d/%m/%Y')}`"
     
@@ -2776,19 +2796,19 @@ def main():
     application.add_error_handler(error_handler)
     
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("🔥 VIRTUAL ACCOUNT BOT - FULLY ENHANCED! 🔥")
+    print("🔥 VIRTUAL ACCOUNT BOT - FULLY FIXED! 🔥")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"\n👑 Owner: {OWNER_ID}")
     print(f"📊 Users: {len(data['users'])}")
     print(f"🌍 Countries: {len(data['accounts'])}")
-    print(f"\n✅ ALL FEATURES:")
-    print("   • ✅ /add command for owner")
-    print("   • ✅ /deduct command for owner")
+    print(f"\n✅ ALL FIXES APPLIED:")
+    print("   • ✅ Country shows immediately after add")
+    print("   • ✅ Immediate save after country creation")
+    print("   • ✅ Shows countries with sessions even if qty=0")
+    print("   • ✅ Proper state management")
     print("   • ✅ 2FA password support")
-    print("   • ✅ OTP shows with phone + 2FA")
+    print("   • ✅ /add & /deduct commands")
     print("   • ✅ Session protection (600 permissions)")
-    print("   • ✅ Auto-restart support")
-    print("   • ✅ Dockerfile included")
     print(f"\n🔐 FORCE JOIN ENABLED!")
     print(f"📢 Channel: {SUPPORT_CHANNEL_LINK}")
     print(f"👥 Group: {SUPPORT_GROUP_LINK}")

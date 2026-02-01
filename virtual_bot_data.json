@@ -1,7 +1,7 @@
 {
   "users": {
     "7661825494": {
-      "balance": 1001880,
+      "balance": 1001830,
       "purchases": [
         {
           "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
@@ -22,6 +22,19 @@
             }
           ],
           "timestamp": "2026-01-31T01:43:08.940515",
+          "status": "completed"
+        },
+        {
+          "country": "USA \ud83c\uddfa\ud83c\uddf8",
+          "quantity": 1,
+          "price": 50,
+          "sessions": [
+            {
+              "session": "AQIBIGIANv4vmozuuIPL5JTkS5J-aOA4eD8-6ZW10I_3Fv0JpkHE3Tj_f_VWFBCfYgYXZkq93-uR69Pfq6WUJSV3nKDjN_wKjLd_GtCh64QxRoSrSDhIb7_DjFhtzZ0G_Mp8tiDHJN-7p9KvCEER6Xq5PjcD0GkEcc43BGfmP7JVW8qfzVVQ07V2WR5OFBYjh8AatPeD1SA3esy1vgk6nrGUUyRfqsgEAtbGkeW0e0DdSPFKZDnXm-PEw4qwKlbyVWeDwinc4WbNHDoDKbo-8w5UriYMpbHe-rGCUw5JPqtGegYAeoC1XlWkQINATHmtf1PkDPLXFBShHTEG0bhsei6TawpS0gAAAAH8SXifAA",
+              "added": "2026-01-30T18:06:51.793938"
+            }
+          ],
+          "timestamp": "2026-02-01T12:41:46.464653",
           "status": "completed"
         }
       ],
@@ -393,18 +406,38 @@
       "balance": 0,
       "purchases": [],
       "username": "II_PAPA_TAG_KARNE_WALA_KA_II"
+    },
+    "5110219290": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Soumya_0574"
+    },
+    "7981949367": {
+      "balance": 0,
+      "purchases": [],
+      "username": "AyaanZafir"
+    },
+    "7673002353": {
+      "balance": 0,
+      "purchases": [],
+      "username": "shivansh_994"
+    },
+    "8142192050": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "8365363893": {
+      "balance": 0,
+      "purchases": [],
+      "username": "TheRxEmpire"
     }
   },
   "accounts": {
     "USA \ud83c\uddfa\ud83c\uddf8": {
       "price": 50,
-      "quantity": 1,
-      "sessions": [
-        {
-          "session": "AQIBIGIANv4vmozuuIPL5JTkS5J-aOA4eD8-6ZW10I_3Fv0JpkHE3Tj_f_VWFBCfYgYXZkq93-uR69Pfq6WUJSV3nKDjN_wKjLd_GtCh64QxRoSrSDhIb7_DjFhtzZ0G_Mp8tiDHJN-7p9KvCEER6Xq5PjcD0GkEcc43BGfmP7JVW8qfzVVQ07V2WR5OFBYjh8AatPeD1SA3esy1vgk6nrGUUyRfqsgEAtbGkeW0e0DdSPFKZDnXm-PEw4qwKlbyVWeDwinc4WbNHDoDKbo-8w5UriYMpbHe-rGCUw5JPqtGegYAeoC1XlWkQINATHmtf1PkDPLXFBShHTEG0bhsei6TawpS0gAAAAH8SXifAA",
-          "added": "2026-01-30T18:06:51.793938"
-        }
-      ]
+      "quantity": 0,
+      "sessions": []
     },
     "INDIAN \ud83c\uddee\ud83c\uddf3": {
       "price": 35,
@@ -446,8 +479,8 @@
   },
   "pending_payments": {
     "7661825494": {
-      "amount": 10,
-      "timestamp": "2026-02-01T10:49:07.126776",
+      "amount": 40,
+      "timestamp": "2026-02-01T12:53:51.383489",
       "status": "waiting_screenshot"
     },
     "6980326908": {
@@ -510,6 +543,10 @@
     },
     "8265189924": {
       "state": 0,
+      "data": {}
+    },
+    "6980326908": {
+      "state": 1,
       "data": {}
     }
   },
