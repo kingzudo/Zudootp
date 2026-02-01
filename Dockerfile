@@ -1,14 +1,28 @@
-# Python latest version use kar
-FROM python:3.12-slim
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
-# Working directory bana
+# Set working directory
 WORKDIR /app
 
-# Saare files copy kar (bot.py, bots_data.json etc.)
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-# Required library install kar (python-telegram-bot)
-RUN pip install --no-cache-dir python-telegram-bot
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Bot run karne ka command
-CMD ["python", "test.py"]
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the bot script
+COPY otp.py .
+
+# Create data directory with proper permissions
+RUN mkdir -p /app/data && chmod 700 /app/data
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+
+# Run the bot
+CMD ["python", "otp.py"]

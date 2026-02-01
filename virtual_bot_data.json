@@ -1,0 +1,532 @@
+{
+  "users": {
+    "7661825494": {
+      "balance": 1001880,
+      "purchases": [
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 3,
+          "price": 120,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+              "added": "2026-01-30T18:09:59.190608"
+            },
+            {
+              "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
+              "added": "2026-01-30T18:09:59.680554"
+            },
+            {
+              "session": "BAIBIGIArDcT9OBblf2KeL9GhoLGei6MeDzzq9bbxRwFg581Gv_E4HkT4uFniVDTKQALBY9WfR5YswIyPw6OG-1MfiCILRXyMK9Jjcy0gD0Ffr_xXzy74IQc3zy4X_3Tf2c7MmlBggvdiLrXU71gTkbBHziNTGIa7WaWZ0rYJuvkq82XXPW1Kmr507p-dVDa75anwpXlhCXoo8eFTdGLgAxplCv-0q7eGLgwiPl7YUEB0izGaBRPBZoLu80yMjfGCKtiJmsX-C4thT0DLD79OFc730RLkLMXWaf-SPmvAZIa3FSWDQGiJOgAYgjq8EsQm_7Pj0rIWVSizQXbCWSxpGPn2LqwOwAAAAH6Nju4AA",
+              "added": "2026-01-30T18:10:00.166275"
+            }
+          ],
+          "timestamp": "2026-01-31T01:43:08.940515",
+          "status": "completed"
+        }
+      ],
+      "username": "lTZ_ME_ADITYA_02"
+    },
+    "6980326908": {
+      "balance": 800837,
+      "purchases": [
+        {
+          "country": "USA \ud83c\uddfa\ud83c\uddf8",
+          "quantity": 2,
+          "price": 110,
+          "sessions": [
+            {
+              "session": "AQIBIGIAhlIRQlE5HqrQ8MehtW3IqWcAFS35jMda4X6peGevdCvR0BadzHVQC0rncUt0dzFYu-XaQcRb3wHUVBNI8UmCUr-LAm52Q6547QsuURtd4wXyNvrMwmZu6cubfkyQUN5f9COOF8FDA820refFg1rPeDbf6HeAFRm1mT2KmhL4AeUA3T5fMC6s1vrRK3SEJB2nnbxidDL-SZjbamLmABMQ8VJdf-AWEXKj1bKYPvhSSjwzDiUTyTLrj4a6kYo8wcBYhc9L_txQZp1hRl9QUjXp9pF0EtfCuCmb_3VFagYbzFQSgw4vr5_h24g8kELkZHEpGobGTicc-NHL5-IfCo7OiAAAAAHxa41DAA",
+              "added": "2026-01-30T18:03:15.413968"
+            },
+            {
+              "session": "AQIBIGIANv4vmozuuIPL5JTkS5J-aOA4eD8-6ZW10I_3Fv0JpkHE3Tj_f_VWFBCfYgYXZkq93-uR69Pfq6WUJSV3nKDjN_wKjLd_GtCh64QxRoSrSDhIb7_DjFhtzZ0G_Mp8tiDHJN-7p9KvCEER6Xq5PjcD0GkEcc43BGfmP7JVW8qfzVVQ07V2WR5OFBYjh8AatPeD1SA3esy1vgk6nrGUUyRfqsgEAtbGkeW0e0DdSPFKZDnXm-PEw4qwKlbyVWeDwinc4WbNHDoDKbo-8w5UriYMpbHe-rGCUw5JPqtGegYAeoC1XlWkQINATHmtf1PkDPLXFBShHTEG0bhsei6TawpS0gAAAAH8SXifAA",
+              "added": "2026-01-30T18:03:17.860188"
+            }
+          ],
+          "timestamp": "2026-01-30T18:05:25.801828",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 40,
+          "sessions": [
+            {
+              "session": "BQIBIGIAsYLil7wQM02Bb6lb99VXSn0Q0e7q-hmCf3TA9mOumhILKs7NPYilNrdYz_4cn8Bz9_tSGhEGwrPO8UaIl9vdUFvreWYJZEODs2AeHtRBOesA0i7EjqgV3AS0xxu3Mj0deJ4XCRZsE946E9v51WxImYCyP0c9TKYe5KWtPE_TgKquMtNdEUN9Tdz9czR9C_w8P1Qg1jMBv8pQC9Yvbvq2b44fLbdQWccQdekX37FTilG9iMmfKcu9qJ2D_Gt2-JTpmkgwmhGGihqZ0jKIma7fNdXshDAYoowbAK0vCQY4P6vbncAlHvWcW3IEsIsqPrEfDr0fURKm22fcQYRTRU1AjQAAAAHr4QVBAA",
+              "added": "2026-01-30T18:11:11.692658"
+            }
+          ],
+          "timestamp": "2026-01-30T18:13:06.909978",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 40,
+          "sessions": [
+            {
+              "session": "BQIBIGIAsYLil7wQM02Bb6lb99VXSn0Q0e7q-hmCf3TA9mOumhILKs7NPYilNrdYz_4cn8Bz9_tSGhEGwrPO8UaIl9vdUFvreWYJZEODs2AeHtRBOesA0i7EjqgV3AS0xxu3Mj0deJ4XCRZsE946E9v51WxImYCyP0c9TKYe5KWtPE_TgKquMtNdEUN9Tdz9czR9C_w8P1Qg1jMBv8pQC9Yvbvq2b44fLbdQWccQdekX37FTilG9iMmfKcu9qJ2D_Gt2-JTpmkgwmhGGihqZ0jKIma7fNdXshDAYoowbAK0vCQY4P6vbncAlHvWcW3IEsIsqPrEfDr0fURKm22fcQYRTRU1AjQAAAAHr4QVBAA",
+              "added": "2026-01-30T18:14:26.987748"
+            }
+          ],
+          "timestamp": "2026-01-30T18:14:49.056762",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 40,
+          "sessions": [
+            {
+              "session": "BQIBIGIAsYLil7wQM02Bb6lb99VXSn0Q0e7q-hmCf3TA9mOumhILKs7NPYilNrdYz_4cn8Bz9_tSGhEGwrPO8UaIl9vdUFvreWYJZEODs2AeHtRBOesA0i7EjqgV3AS0xxu3Mj0deJ4XCRZsE946E9v51WxImYCyP0c9TKYe5KWtPE_TgKquMtNdEUN9Tdz9czR9C_w8P1Qg1jMBv8pQC9Yvbvq2b44fLbdQWccQdekX37FTilG9iMmfKcu9qJ2D_Gt2-JTpmkgwmhGGihqZ0jKIma7fNdXshDAYoowbAK0vCQY4P6vbncAlHvWcW3IEsIsqPrEfDr0fURKm22fcQYRTRU1AjQAAAAHr4QVBAA",
+              "added": "2026-01-30T18:15:45.524145"
+            }
+          ],
+          "timestamp": "2026-01-30T18:31:44.354337",
+          "status": "completed"
+        },
+        {
+          "country": "VIETNAM \ud83c\uddfb\ud83c\uddf3",
+          "quantity": 1,
+          "price": 42,
+          "sessions": [
+            {
+              "session": "BQIBIGIAs60sQagZTdfoXKsdNakVjChnEEcM2JNsjZMTvSf1vYpgyf4VK9IvWWo6ZOeUwqdqwe9EQpSWIRKijDqRU034gnf5I3exzU5qrFFOO6zOOHpESud8AptOsBwsAXuFOdEoaqdwSw4MazpndhyIZnSg9Q9Iuh5JmXaNiRkBkIKMyXCD5Tnn2Ox63FLNZ2M9dMpuXBr_cvCWO9vJJzRU_hHiI2OJZiWwMWkqIquB5CMECjMqEvZdDeydOuC5CVQApLgirrAEVRXKhOJdeRnn_diRIwI7HBvkHmHUe17Bnv2pUcTaNOBz_8eD9O1jsryu6HcTI3n7AsHXgPbroUjJMLnveQAAAAH8SP9vAA",
+              "added": "2026-01-30T23:48:33.290757"
+            }
+          ],
+          "timestamp": "2026-01-31T01:03:23.081906",
+          "status": "completed"
+        },
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 3,
+          "price": 120,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+              "added": "2026-01-31T01:44:31.195439"
+            },
+            {
+              "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
+              "added": "2026-01-31T01:44:32.547835"
+            },
+            {
+              "session": "BAIBIGIArDcT9OBblf2KeL9GhoLGei6MeDzzq9bbxRwFg581Gv_E4HkT4uFniVDTKQALBY9WfR5YswIyPw6OG-1MfiCILRXyMK9Jjcy0gD0Ffr_xXzy74IQc3zy4X_3Tf2c7MmlBggvdiLrXU71gTkbBHziNTGIa7WaWZ0rYJuvkq82XXPW1Kmr507p-dVDa75anwpXlhCXoo8eFTdGLgAxplCv-0q7eGLgwiPl7YUEB0izGaBRPBZoLu80yMjfGCKtiJmsX-C4thT0DLD79OFc730RLkLMXWaf-SPmvAZIa3FSWDQGiJOgAYgjq8EsQm_7Pj0rIWVSizQXbCWSxpGPn2LqwOwAAAAH6Nju4AA",
+              "added": "2026-01-31T01:44:33.456736"
+            }
+          ],
+          "timestamp": "2026-01-31T01:45:21.605814",
+          "status": "completed"
+        },
+        {
+          "country": "ADD",
+          "quantity": 2,
+          "price": 70,
+          "sessions": [
+            {
+              "session": "BQIBIGIARUvTTk-Sua9mAysKPkq4AdfavRyxhcDjHreeXiHyJe6y8y5ck0N147vT0-fiyveA1-WkaaXH3g4Wr6q16XBEkCrHzFvQVFOsZBfh1l1g25uzW9A0Hcabxf5sIsAL4RDVHuG4G7ffStiY2LS5R0j26nLPiLe4B6t5v3VJ71btPOIIIGAexlhyvUlHie6QIdHBfLbhqko_BCDOUxek-SiVcKLh8nF94iPgbsclRYIJ1iX0yXsXuyFjr_QfOYesekXJ4tiIY3Wnllj3LFEPn8rsynngmBftvxAcIOrceTuMpvtYaKLpksPCcxDGtA4X5KvgPEiakbsiOlB9w58GhofXpwAAAAHdKMPcAA",
+              "added": "2026-01-31T20:11:35.611398"
+            },
+            {
+              "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
+              "added": "2026-01-31T20:11:40.125942"
+            }
+          ],
+          "timestamp": "2026-01-31T20:39:39.040449",
+          "status": "completed"
+        },
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 2,
+          "price": 76,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+              "added": "2026-01-31T20:52:04.083388"
+            },
+            {
+              "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
+              "added": "2026-01-31T20:52:09.832944"
+            }
+          ],
+          "timestamp": "2026-01-31T20:53:21.173289",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 35,
+          "sessions": [
+            {
+              "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
+              "added": "2026-01-31T20:42:18.878591"
+            }
+          ],
+          "timestamp": "2026-02-01T04:39:29.150432",
+          "status": "completed"
+        }
+      ],
+      "username": "Someattachment"
+    },
+    "8508756717": {
+      "balance": 0,
+      "purchases": [],
+      "username": "l_mahadev_l"
+    },
+    "7269045971": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "8497016008": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "8329349372": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Falco_trusted"
+    },
+    "5640314652": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Tgseler"
+    },
+    "8043091004": {
+      "balance": 0,
+      "purchases": [],
+      "username": "ROCKYYYOP"
+    },
+    "1987775541": {
+      "balance": 0,
+      "purchases": [],
+      "username": "id_seller_tg"
+    },
+    "8131302519": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Cuteearth"
+    },
+    "7974568660": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Sidhusdt"
+    },
+    "8540115488": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "7712241933": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Amitotp"
+    },
+    "918703659": {
+      "balance": 0,
+      "purchases": [],
+      "username": "RealEarning15042001"
+    },
+    "7346026199": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Gragra5050"
+    },
+    "7598755545": {
+      "balance": 0,
+      "purchases": [
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 1,
+          "price": 40,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGQKgiOFqxTHBLMELeC2JOixfyWxftzG3JUyMJ_ewkj1cmHlmss5kFtIDqCzN2ZPbU2NKJ9gjbq2iOnSwDz1onTBfORyQq0x63dc9XPNjcKO-lY4bEa-2uG8xKTdmh6X4XbjACInKNkU0UHrLlKYPF-Lw-UPGiZYPXMrAD6_SzE-b3KbaPW0CaNDODxaepC9s8q9vZjbL5cO4H1vCWsAjuxJhPrLLg-dCLEYcs29quwdwVe_hCMR8DB23xnUN9vTVmTgphbXKegh2solGs1QFZNwvbVwDTlfkMA3UqLZ-0mC97x6UGM0fxEDWZeJeJ_QewctZNyVTJN4sHG_wsfHzpwAAAAGzbQwbAA",
+              "added": "2026-01-30T18:09:55.874907"
+            }
+          ],
+          "timestamp": "2026-01-31T01:17:43.662293",
+          "status": "completed"
+        }
+      ],
+      "username": "User"
+    },
+    "5537048807": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "8492630055": {
+      "balance": 0,
+      "purchases": [],
+      "username": "Itsxniku"
+    },
+    "6711798163": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "8430780365": {
+      "balance": 0,
+      "purchases": [],
+      "username": "UnKnown_888_888"
+    },
+    "6789613331": {
+      "balance": 0,
+      "purchases": [],
+      "username": "VERY_TOXIC_I_AM"
+    },
+    "7728585254": {
+      "balance": 0,
+      "purchases": [
+        {
+          "country": "USA \ud83c\uddfa\ud83c\uddf8",
+          "quantity": 1,
+          "price": 50,
+          "sessions": [
+            {
+              "session": "AQIBIGIAhlIRQlE5HqrQ8MehtW3IqWcAFS35jMda4X6peGevdCvR0BadzHVQC0rncUt0dzFYu-XaQcRb3wHUVBNI8UmCUr-LAm52Q6547QsuURtd4wXyNvrMwmZu6cubfkyQUN5f9COOF8FDA820refFg1rPeDbf6HeAFRm1mT2KmhL4AeUA3T5fMC6s1vrRK3SEJB2nnbxidDL-SZjbamLmABMQ8VJdf-AWEXKj1bKYPvhSSjwzDiUTyTLrj4a6kYo8wcBYhc9L_txQZp1hRl9QUjXp9pF0EtfCuCmb_3VFagYbzFQSgw4vr5_h24g8kELkZHEpGobGTicc-NHL5-IfCo7OiAAAAAHxa41DAA",
+              "added": "2026-01-30T18:06:49.602653"
+            }
+          ],
+          "timestamp": "2026-02-01T00:34:00.745661",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 35,
+          "sessions": [
+            {
+              "session": "BQIBIGIARUvTTk-Sua9mAysKPkq4AdfavRyxhcDjHreeXiHyJe6y8y5ck0N147vT0-fiyveA1-WkaaXH3g4Wr6q16XBEkCrHzFvQVFOsZBfh1l1g25uzW9A0Hcabxf5sIsAL4RDVHuG4G7ffStiY2LS5R0j26nLPiLe4B6t5v3VJ71btPOIIIGAexlhyvUlHie6QIdHBfLbhqko_BCDOUxek-SiVcKLh8nF94iPgbsclRYIJ1iX0yXsXuyFjr_QfOYesekXJ4tiIY3Wnllj3LFEPn8rsynngmBftvxAcIOrceTuMpvtYaKLpksPCcxDGtA4X5KvgPEiakbsiOlB9w58GhofXpwAAAAHdKMPcAA",
+              "added": "2026-01-31T20:42:04.997605"
+            }
+          ],
+          "timestamp": "2026-02-01T00:37:31.334337",
+          "status": "completed"
+        }
+      ],
+      "username": "User"
+    },
+    "7789325573": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User_7789325573"
+    },
+    "6752384054": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "5988434873": {
+      "balance": 0,
+      "purchases": [
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 4,
+          "price": 140,
+          "sessions": [
+            {
+              "session": "BQIBIGIAsYLil7wQM02Bb6lb99VXSn0Q0e7q-hmCf3TA9mOumhILKs7NPYilNrdYz_4cn8Bz9_tSGhEGwrPO8UaIl9vdUFvreWYJZEODs2AeHtRBOesA0i7EjqgV3AS0xxu3Mj0deJ4XCRZsE946E9v51WxImYCyP0c9TKYe5KWtPE_TgKquMtNdEUN9Tdz9czR9C_w8P1Qg1jMBv8pQC9Yvbvq2b44fLbdQWccQdekX37FTilG9iMmfKcu9qJ2D_Gt2-JTpmkgwmhGGihqZ0jKIma7fNdXshDAYoowbAK0vCQY4P6vbncAlHvWcW3IEsIsqPrEfDr0fURKm22fcQYRTRU1AjQAAAAHr4QVBAA",
+              "added": "2026-01-30T18:33:42.049509"
+            },
+            {
+              "session": "BQIBIGIAvkb1VTVqAgC6FkWRRQ5RxthOswZUi7BNzQlgid_XAvbXL8zF_NPfQq4vZsSFoKC8CM3DPdYw2PL42q4en2VUFps14XrZAbA82NkKI-8RPjirWkLKk8tjGC15KiNEqgBY61afp2pe4qlTJ7ZazWJW1uHOSEwefLWmTObgW6vU8mFEVZnVccybIURcHU91jGAfQw2ZZS3e08JFrX5ODT7HIoRRS1fq8_RevHxhGWpYi3Lj83i94qzDRc1wYXVWDmmoD95-ts0PWu_C_Jn2rmweYB3WU2t9CMkhO7v93KxwrENv2yaoh10wboFpF8-GEC6G7fZjqKSIEjov7xpeDcCfcwAAAAHcY6gIAA",
+              "added": "2026-01-30T23:47:53.618729"
+            },
+            {
+              "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
+              "added": "2026-01-31T14:09:27.406758"
+            },
+            {
+              "session": "BQIBIGIARUvTTk-Sua9mAysKPkq4AdfavRyxhcDjHreeXiHyJe6y8y5ck0N147vT0-fiyveA1-WkaaXH3g4Wr6q16XBEkCrHzFvQVFOsZBfh1l1g25uzW9A0Hcabxf5sIsAL4RDVHuG4G7ffStiY2LS5R0j26nLPiLe4B6t5v3VJ71btPOIIIGAexlhyvUlHie6QIdHBfLbhqko_BCDOUxek-SiVcKLh8nF94iPgbsclRYIJ1iX0yXsXuyFjr_QfOYesekXJ4tiIY3Wnllj3LFEPn8rsynngmBftvxAcIOrceTuMpvtYaKLpksPCcxDGtA4X5KvgPEiakbsiOlB9w58GhofXpwAAAAHdKMPcAA",
+              "added": "2026-01-31T14:13:45.131717"
+            }
+          ],
+          "timestamp": "2026-01-31T19:54:54.782366",
+          "status": "completed"
+        },
+        {
+          "country": "ADD",
+          "quantity": 2,
+          "price": 70,
+          "sessions": [
+            {
+              "session": "BQIBIGIAsYLil7wQM02Bb6lb99VXSn0Q0e7q-hmCf3TA9mOumhILKs7NPYilNrdYz_4cn8Bz9_tSGhEGwrPO8UaIl9vdUFvreWYJZEODs2AeHtRBOesA0i7EjqgV3AS0xxu3Mj0deJ4XCRZsE946E9v51WxImYCyP0c9TKYe5KWtPE_TgKquMtNdEUN9Tdz9czR9C_w8P1Qg1jMBv8pQC9Yvbvq2b44fLbdQWccQdekX37FTilG9iMmfKcu9qJ2D_Gt2-JTpmkgwmhGGihqZ0jKIma7fNdXshDAYoowbAK0vCQY4P6vbncAlHvWcW3IEsIsqPrEfDr0fURKm22fcQYRTRU1AjQAAAAHr4QVBAA",
+              "added": "2026-01-31T20:11:22.076736"
+            },
+            {
+              "session": "BQIBIGIAvkb1VTVqAgC6FkWRRQ5RxthOswZUi7BNzQlgid_XAvbXL8zF_NPfQq4vZsSFoKC8CM3DPdYw2PL42q4en2VUFps14XrZAbA82NkKI-8RPjirWkLKk8tjGC15KiNEqgBY61afp2pe4qlTJ7ZazWJW1uHOSEwefLWmTObgW6vU8mFEVZnVccybIURcHU91jGAfQw2ZZS3e08JFrX5ODT7HIoRRS1fq8_RevHxhGWpYi3Lj83i94qzDRc1wYXVWDmmoD95-ts0PWu_C_Jn2rmweYB3WU2t9CMkhO7v93KxwrENv2yaoh10wboFpF8-GEC6G7fZjqKSIEjov7xpeDcCfcwAAAAHcY6gIAA",
+              "added": "2026-01-31T20:11:28.653126"
+            }
+          ],
+          "timestamp": "2026-01-31T20:13:27.694680",
+          "status": "completed"
+        }
+      ],
+      "username": "User"
+    },
+    "1455320440": {
+      "balance": 0,
+      "purchases": [],
+      "username": "makansepatu"
+    },
+    "8161913184": {
+      "balance": 0,
+      "purchases": [],
+      "username": "R_O_H_A_NN"
+    },
+    "8265189924": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User"
+    },
+    "6578194250": {
+      "balance": 0,
+      "purchases": [],
+      "username": "siddharth9861"
+    },
+    "8589308269": {
+      "balance": 0,
+      "purchases": [],
+      "username": "II_PAPA_TAG_KARNE_WALA_KA_II"
+    }
+  },
+  "accounts": {
+    "USA \ud83c\uddfa\ud83c\uddf8": {
+      "price": 50,
+      "quantity": 1,
+      "sessions": [
+        {
+          "session": "AQIBIGIANv4vmozuuIPL5JTkS5J-aOA4eD8-6ZW10I_3Fv0JpkHE3Tj_f_VWFBCfYgYXZkq93-uR69Pfq6WUJSV3nKDjN_wKjLd_GtCh64QxRoSrSDhIb7_DjFhtzZ0G_Mp8tiDHJN-7p9KvCEER6Xq5PjcD0GkEcc43BGfmP7JVW8qfzVVQ07V2WR5OFBYjh8AatPeD1SA3esy1vgk6nrGUUyRfqsgEAtbGkeW0e0DdSPFKZDnXm-PEw4qwKlbyVWeDwinc4WbNHDoDKbo-8w5UriYMpbHe-rGCUw5JPqtGegYAeoC1XlWkQINATHmtf1PkDPLXFBShHTEG0bhsei6TawpS0gAAAAH8SXifAA",
+          "added": "2026-01-30T18:06:51.793938"
+        }
+      ]
+    },
+    "INDIAN \ud83c\uddee\ud83c\uddf3": {
+      "price": 35,
+      "quantity": 1,
+      "sessions": [
+        {
+          "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
+          "added": "2026-02-01T04:42:11.402883"
+        }
+      ]
+    },
+    "ADD": {
+      "price": 35,
+      "quantity": 0,
+      "sessions": []
+    },
+    "SOUTH AFRICA \ud83c\uddff\ud83c\udde6": {
+      "price": 38,
+      "quantity": 2,
+      "sessions": [
+        {
+          "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+          "added": "2026-01-31T20:55:10.334302"
+        },
+        {
+          "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
+          "added": "2026-01-31T20:55:13.572227"
+        }
+      ]
+    }
+  },
+  "discount_codes": {},
+  "coupons": {
+    "COUPON_6B2E505D": {
+      "amount": 1000000,
+      "uses_left": 999997,
+      "created": "2026-01-31T01:06:36.795431"
+    }
+  },
+  "pending_payments": {
+    "7661825494": {
+      "amount": 10,
+      "timestamp": "2026-02-01T10:49:07.126776",
+      "status": "waiting_screenshot"
+    },
+    "6980326908": {
+      "amount": 125,
+      "timestamp": "2026-01-31T15:43:04.783604",
+      "status": "waiting_screenshot"
+    },
+    "7598755545": {
+      "amount": 40,
+      "screenshot": "AgACAgUAAxkBAAIJZGl9ClRxsnF5UCiYFU9urTi1JFbzAAJeEWsbA-jpV_tLyimziV24AQADAgADeQADOAQ",
+      "timestamp": "2026-01-31T01:15:27.718499",
+      "status": "approved"
+    },
+    "7346026199": {
+      "amount": 20,
+      "timestamp": "2026-01-31T08:10:11.899339",
+      "status": "waiting_screenshot"
+    },
+    "6711798163": {
+      "amount": 50,
+      "timestamp": "2026-01-31T08:36:09.906153",
+      "status": "waiting_screenshot"
+    },
+    "6789613331": {
+      "amount": 50,
+      "timestamp": "2026-01-31T10:04:00.310467",
+      "status": "waiting_screenshot"
+    },
+    "5988434873": {
+      "amount": 70,
+      "screenshot": "AgACAgUAAxkBAAIKsWl-EFWd58bcFI4GZf6z0lvW6aHqAAIfEmsbTRHwV8vA7LMrQtaMAQADAgADeQADOAQ",
+      "timestamp": "2026-01-31T20:11:11.749880",
+      "status": "approved"
+    },
+    "8265189924": {
+      "amount": 10,
+      "timestamp": "2026-01-31T21:29:23.351880",
+      "status": "waiting_screenshot"
+    },
+    "7728585254": {
+      "amount": 85,
+      "screenshot": "AgACAgUAAxkBAAILTml-SavhstUp9aX35saxKZqvGXyXAALbDWsbh2zxV6OiuHV6btsaAQADAgADeQADOAQ",
+      "timestamp": "2026-01-31T23:57:58.699094",
+      "status": "approved"
+    }
+  },
+  "bot_photo": null,
+  "states": {
+    "6711798163": {
+      "state": 2,
+      "data": {
+        "amount": 50
+      }
+    },
+    "6789613331": {
+      "state": 2,
+      "data": {
+        "amount": 50
+      }
+    },
+    "8265189924": {
+      "state": 0,
+      "data": {}
+    },
+    "7661825494": {
+      "state": 2,
+      "data": {
+        "amount": 10
+      }
+    }
+  },
+  "used_coupons": {
+    "7661825494": [
+      "COUPON_6B2E505D",
+      "COUPON_5A93C45F"
+    ],
+    "6980326908": [
+      "COUPON_6B2E505D"
+    ]
+  },
+  "used_discounts": {}
+}
