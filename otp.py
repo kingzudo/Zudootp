@@ -14,8 +14,6 @@ from telegram.error import BadRequest
 import logging
 import qrcode
 import io
-import signal
-import sys
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -35,14 +33,14 @@ SUPPORT_GROUP_LINK = "https://t.me/zudootpsupport"
 
 # UPI Details
 UPI_ID = "fearlessaditya@fam"
-UPI_NAME = "Aditya"
+UPI_NAME = "Aditya"  # Merchant name for UPI
 
-# ✅ CRITICAL: यही वो file है जहां सब कुछ save होगा
+# Database file
 DB_FILE = "virtual_bot_data.json"
 
 # Membership cache (1 hour)
 membership_cache = {}
-CACHE_DURATION = 3600
+CACHE_DURATION = 3600  # 1 hour in seconds
 
 # Conversation States
 (
@@ -60,33 +58,14 @@ CACHE_DURATION = 3600
     WAITING_FOR_BOT_PHOTO,
     WAITING_FOR_QUANTITY,
     WAITING_FOR_ADD_MORE_SESSIONS,
-    WAITING_FOR_BROADCAST_MESSAGE,
-    WAITING_FOR_ADD_USER_ID,
-    WAITING_FOR_ADD_AMOUNT,
-    WAITING_FOR_DEDUCT_USER_ID,
-    WAITING_FOR_DEDUCT_AMOUNT
-) = range(19)
+    WAITING_FOR_BROADCAST_MESSAGE
+) = range(15)
 
-# Load/Save Database with lock
-db_lock = asyncio.Lock()
-
+# Load/Save Database
 def load_data():
-    """✅ Load data from JSON file"""
     if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, 'r') as f:
-                data = json.load(f)
-                logger.info(f"[DB LOADED] ✅ Data loaded from {DB_FILE}")
-                logger.info(f"[DB LOADED] Countries: {list(data.get('accounts', {}).keys())}")
-                return data
-        except Exception as e:
-            logger.error(f"[DB LOAD ERROR] ❌ {e}")
-            return get_default_data()
-    logger.warning(f"[DB LOAD] ⚠️ No existing file, creating new")
-    return get_default_data()
-
-def get_default_data():
-    """✅ Default data structure"""
+        with open(DB_FILE, 'r') as f:
+            return json.load(f)
     return {
         "users": {},
         "accounts": {},
@@ -99,62 +78,10 @@ def get_default_data():
         "used_discounts": {}
     }
 
-async def save_data_async(data_to_save):
-    """✅ CRITICAL: Async save with verification"""
-    async with db_lock:
-        try:
-            # Create backup before saving
-            if os.path.exists(DB_FILE):
-                backup_file = f"{DB_FILE}.backup"
-                with open(DB_FILE, 'r') as src, open(backup_file, 'w') as dst:
-                    dst.write(src.read())
-                logger.info(f"[DB BACKUP] ✅ Backup created: {backup_file}")
-            
-            # Save new data
-            with open(DB_FILE, 'w') as f:
-                json.dump(data_to_save, f, indent=2)
-            
-            # Set file permissions (read-only for group/others)
-            os.chmod(DB_FILE, 0o600)
-            
-            # ✅ VERIFY: Check if data was saved correctly
-            with open(DB_FILE, 'r') as f:
-                verified_data = json.load(f)
-                countries = list(verified_data.get('accounts', {}).keys())
-                total_sessions = sum(len(info.get('sessions', [])) for info in verified_data.get('accounts', {}).values())
-                
-                logger.info(f"[DB SAVED] ✅ Data saved to {DB_FILE}")
-                logger.info(f"[DB SAVED] ✅ Countries: {countries}")
-                logger.info(f"[DB SAVED] ✅ Total sessions: {total_sessions}")
-                
-                # Detailed session count per country
-                for country, info in verified_data.get('accounts', {}).items():
-                    session_count = len(info.get('sessions', []))
-                    logger.info(f"[DB SAVED]    • {country.upper()}: {session_count} sessions")
-                
-        except Exception as e:
-            logger.error(f"[DB SAVE ERROR] ❌ {e}")
-            raise
+def save_data(data):
+    with open(DB_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
-def save_data(data_to_save):
-    """✅ Sync save wrapper"""
-    try:
-        with open(DB_FILE, 'w') as f:
-            json.dump(data_to_save, f, indent=2)
-        os.chmod(DB_FILE, 0o600)
-        
-        logger.info(f"[DB SAVED SYNC] ✅ Data saved to {DB_FILE}")
-        
-        # Verify
-        with open(DB_FILE, 'r') as f:
-            verified = json.load(f)
-            countries = list(verified.get('accounts', {}).keys())
-            logger.info(f"[DB SAVED SYNC] ✅ Verified countries: {countries}")
-            
-    except Exception as e:
-        logger.error(f"[DB SAVE ERROR SYNC] ❌ {e}")
-
-# ✅ Load data at startup
 data = load_data()
 
 # Initialize data structures
@@ -162,29 +89,40 @@ for key in ["users", "accounts", "discount_codes", "coupons", "pending_payments"
     if key not in data:
         data[key] = {}
 
-# QR CODE GENERATION
+# ============ QR CODE GENERATION ============
 def generate_upi_qr(amount: int) -> BytesIO:
+    """Generate UPI QR code with dynamic amount"""
     try:
-        upi_url = f"upi://pay?pa={UPI_ID}&pn={UPI_NAME}&am={amount}&cu=INR&tn=Payment"
+        # UPI Payment URL format
+        upi_url = f"upi://pay?pa={UPI_ID}&pn={UPI_NAME}&am={amount}&cu=INR&tn=VirtualAccountPayment"
         
-        qr = qrcode.QRCode(version=1, box_size=8, border=2)
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
         qr.add_data(upi_url)
         qr.make(fit=True)
         
+        # Create image
         img = qr.make_image(fill_color="black", back_color="white")
         
+        # Save to BytesIO
         bio = BytesIO()
-        bio.name = f'qr_{amount}.png'
+        bio.name = f'upi_qr_{amount}.png'
         img.save(bio, 'PNG')
         bio.seek(0)
         
         return bio
     except Exception as e:
-        logger.error(f"[QR ERROR] {e}")
+        logger.error(f"[QR GENERATION ERROR] {e}")
         return None
 
-# LOGGING SYSTEM
+# ============ LOGGING SYSTEM ============
 async def send_log_to_support(context: ContextTypes.DEFAULT_TYPE, log_message: str):
+    """Send detailed logs to support group"""
     try:
         await context.bot.send_message(
             chat_id=SUPPORT_GROUP_ID,
@@ -193,9 +131,10 @@ async def send_log_to_support(context: ContextTypes.DEFAULT_TYPE, log_message: s
             disable_web_page_preview=True
         )
     except Exception as e:
-        logger.error(f"[LOG ERROR] {e}")
+        logger.error(f"[LOG ERROR] Failed to send log: {e}")
 
 async def log_user_registration(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str):
+    """Log new user registration"""
     log = f"""
 🆕 **NEW USER REGISTERED**
 
@@ -208,6 +147,7 @@ async def log_user_registration(context: ContextTypes.DEFAULT_TYPE, user_id: int
     await send_log_to_support(context, log)
 
 async def log_number_purchase(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, country: str, quantity: int, price: int, phone_numbers: list):
+    """Log successful number purchase with phone numbers"""
     phones_text = "\n".join([f"   • `{phone}`" for phone in phone_numbers])
     
     log = f"""
@@ -228,12 +168,12 @@ async def log_number_purchase(context: ContextTypes.DEFAULT_TYPE, user_id: int, 
 """
     await send_log_to_support(context, log)
 
-async def log_session_added(context: ContextTypes.DEFAULT_TYPE, country: str, quantity: int, price: int, phone_number: str):
+async def log_session_added(context: ContextTypes.DEFAULT_TYPE, country: str, quantity: int, price: int):
+    """Log when owner adds sessions"""
     log = f"""
 ➕ **SESSIONS ADDED**
 
 🌍 **Country:** {country.upper()}
-📱 **Phone Number:** `{phone_number}`
 📊 **Added:** {quantity} session(s)
 💰 **Price:** {price} INR
 📦 **Total Stock:** {data['accounts'][country]['quantity']}
@@ -243,6 +183,7 @@ async def log_session_added(context: ContextTypes.DEFAULT_TYPE, country: str, qu
     await send_log_to_support(context, log)
 
 async def log_country_deleted(context: ContextTypes.DEFAULT_TYPE, country: str, quantity: int, price: int):
+    """Log when country is deleted"""
     log = f"""
 🗑️ **COUNTRY DELETED**
 
@@ -254,7 +195,37 @@ async def log_country_deleted(context: ContextTypes.DEFAULT_TYPE, country: str, 
 """
     await send_log_to_support(context, log)
 
+async def log_coupon_redeemed(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, coupon_code: str, amount: int):
+    """Log coupon redemption"""
+    log = f"""
+🎟️ **COUPON REDEEMED**
+
+👤 **User:** {username}
+🆔 **ID:** `{user_id}`
+🎫 **Coupon:** `{coupon_code}`
+💰 **Amount:** {amount} INR
+
+⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+💳 **New Balance:** {data['users'][str(user_id)]['balance']} INR
+"""
+    await send_log_to_support(context, log)
+
+async def log_discount_applied(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, discount_code: str, discount: int):
+    """Log discount code application"""
+    log = f"""
+🎟️ **DISCOUNT CODE APPLIED**
+
+👤 **User:** {username}
+🆔 **ID:** `{user_id}`
+🏷️ **Code:** `{discount_code}`
+💰 **Discount:** {discount} INR
+
+⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+"""
+    await send_log_to_support(context, log)
+
 async def log_payment_submitted(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, amount: int):
+    """Log payment screenshot submission"""
     log = f"""
 💳 **PAYMENT SUBMITTED**
 
@@ -269,6 +240,7 @@ async def log_payment_submitted(context: ContextTypes.DEFAULT_TYPE, user_id: int
     await send_log_to_support(context, log)
 
 async def log_payment_approved(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, amount: int):
+    """Log payment approval"""
     log = f"""
 ✅ **PAYMENT APPROVED**
 
@@ -282,6 +254,7 @@ async def log_payment_approved(context: ContextTypes.DEFAULT_TYPE, user_id: int,
     await send_log_to_support(context, log)
 
 async def log_payment_rejected(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, amount: int):
+    """Log payment rejection"""
     log = f"""
 ❌ **PAYMENT REJECTED**
 
@@ -293,7 +266,34 @@ async def log_payment_rejected(context: ContextTypes.DEFAULT_TYPE, user_id: int,
 """
     await send_log_to_support(context, log)
 
+async def log_coupon_created(context: ContextTypes.DEFAULT_TYPE, coupon_code: str, amount: int):
+    """Log new coupon creation"""
+    log = f"""
+🎫 **NEW COUPON CREATED**
+
+🎟️ **Code:** `{coupon_code}`
+💰 **Amount:** {amount} INR
+📊 **Usage:** One-time per user
+
+⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+"""
+    await send_log_to_support(context, log)
+
+async def log_discount_created(context: ContextTypes.DEFAULT_TYPE, discount_code: str, discount: int):
+    """Log new discount creation"""
+    log = f"""
+🏷️ **NEW DISCOUNT CREATED**
+
+🎟️ **Code:** `{discount_code}`
+💰 **Discount:** {discount} INR
+📊 **Usage:** One-time per user
+
+⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+"""
+    await send_log_to_support(context, log)
+
 async def log_broadcast_sent(context: ContextTypes.DEFAULT_TYPE, total: int, success: int, failed: int):
+    """Log broadcast completion"""
     log = f"""
 📣 **BROADCAST COMPLETED**
 
@@ -307,6 +307,7 @@ async def log_broadcast_sent(context: ContextTypes.DEFAULT_TYPE, total: int, suc
     await send_log_to_support(context, log)
 
 async def log_otp_fetched(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, country: str, success_count: int, total: int):
+    """Log OTP fetch attempts"""
     log = f"""
 🔑 **OTP FETCH ATTEMPT**
 
@@ -320,6 +321,7 @@ async def log_otp_fetched(context: ContextTypes.DEFAULT_TYPE, user_id: int, user
     await send_log_to_support(context, log)
 
 async def log_insufficient_balance(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, required: int, current: int):
+    """Log insufficient balance attempt"""
     log = f"""
 ⚠️ **INSUFFICIENT BALANCE**
 
@@ -333,31 +335,7 @@ async def log_insufficient_balance(context: ContextTypes.DEFAULT_TYPE, user_id: 
 """
     await send_log_to_support(context, log)
 
-async def log_fund_added(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, amount: int, new_balance: int):
-    log = f"""
-➕ **FUND ADDED (OWNER)**
-
-👤 **User:** {username}
-🆔 **ID:** `{user_id}`
-💰 **Amount Added:** {amount} INR
-💳 **New Balance:** {new_balance} INR
-
-⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-"""
-    await send_log_to_support(context, log)
-
-async def log_fund_deducted(context: ContextTypes.DEFAULT_TYPE, user_id: int, username: str, amount: int, new_balance: int):
-    log = f"""
-➖ **FUND DEDUCTED (OWNER)**
-
-👤 **User:** {username}
-🆔 **ID:** `{user_id}`
-💰 **Amount Deducted:** {amount} INR
-💳 **New Balance:** {new_balance} INR
-
-⏰ **Time:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-"""
-    await send_log_to_support(context, log)
+# ============ END LOGGING SYSTEM ============
 
 # Helper Functions
 def get_user_data(user_id):
@@ -411,32 +389,30 @@ def mark_discount_used(user_id, discount_code):
     data["used_discounts"][user_id].append(discount_code)
     save_data(data)
 
-# Membership check with cache
+# SPEED OPTIMIZED: Membership check with 1-hour cache
 async def check_user_membership(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    """Check if user is member with 1-hour cache"""
     current_time = datetime.now().timestamp()
     
+    # Check cache first
     if user_id in membership_cache:
         cache_entry = membership_cache[user_id]
         if current_time - cache_entry["time"] < CACHE_DURATION:
             return cache_entry["is_member"]
     
     try:
-        results = await asyncio.gather(
-            context.bot.get_chat_member(SUPPORT_CHANNEL_ID, user_id),
-            context.bot.get_chat_member(SUPPORT_GROUP_ID, user_id),
-            return_exceptions=True
-        )
+        # Check both memberships in parallel
+        channel_task = context.bot.get_chat_member(SUPPORT_CHANNEL_ID, user_id)
+        group_task = context.bot.get_chat_member(SUPPORT_GROUP_ID, user_id)
         
-        channel_member, group_member = results
-        
-        if isinstance(channel_member, Exception) or isinstance(group_member, Exception):
-            return False
+        channel_member, group_member = await asyncio.gather(channel_task, group_task)
         
         channel_joined = channel_member.status in ['member', 'administrator', 'creator']
         group_joined = group_member.status in ['member', 'administrator', 'creator']
         
         is_member = channel_joined and group_joined
         
+        # Cache result
         membership_cache[user_id] = {
             "is_member": is_member,
             "time": current_time
@@ -444,10 +420,11 @@ async def check_user_membership(context: ContextTypes.DEFAULT_TYPE, user_id: int
         
         return is_member
     except Exception as e:
-        logger.error(f"[MEMBERSHIP ERROR] {e}")
+        logger.error(f"[MEMBERSHIP CHECK ERROR] User {user_id}: {e}")
         return False
 
 async def show_force_join_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show force join message"""
     username = update.effective_user.username or "User"
     
     text = f"""
@@ -468,27 +445,25 @@ async def show_force_join_message(update: Update, context: ContextTypes.DEFAULT_
 • Exclusive deals for members
     """
     
-    keyboard = [
+    keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📢 Join Channel", url=SUPPORT_CHANNEL_LINK)],
         [InlineKeyboardButton("👥 Join Group", url=SUPPORT_GROUP_LINK)],
         [InlineKeyboardButton("✅ Joined - Verify Now", callback_data="verify_join")]
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    ])
     
     if update.message:
-        await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.message.reply_text(text, reply_markup=keyboard, parse_mode='Markdown')
     elif update.callback_query:
-        await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.callback_query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
 
 # Pyrogram Functions
 async def create_client(session_string, user_id):
+    """Create Pyrogram client"""
     try:
-        client = Client(f"session_{user_id}", 
+        client = Client(f"temp_session_{user_id}", 
                        api_id=API_ID, 
                        api_hash=API_HASH, 
-                       session_string=session_string,
-                       no_updates=True)
+                       session_string=session_string)
         await client.start()
         return client
     except Exception as e:
@@ -496,6 +471,7 @@ async def create_client(session_string, user_id):
         return None
 
 async def get_phone_number(client):
+    """Get phone number"""
     try:
         me = await client.get_me()
         return f"+{me.phone_number}" if me.phone_number else "N/A"
@@ -504,21 +480,23 @@ async def get_phone_number(client):
         return "Error"
 
 async def get_otp_from_telegram(client):
+    """Fetch OTP from Telegram (777000)"""
     try:
-        async for message in client.get_chat_history(777000, limit=10):
-            if message.text and message.from_user and str(message.from_user.id) == "777000":
-                patterns = [
-                    r'(?:code|код)[:\s]+(\d{5,6})',
-                    r'\b(\d{5,6})\b',
-                ]
-                
-                for pattern in patterns:
-                    otp_match = re.search(pattern, message.text, re.IGNORECASE)
-                    if otp_match:
-                        potential_otp = otp_match.group(1) if otp_match.groups() else otp_match.group(0)
-                        if len(potential_otp) in [5, 6]:
-                            if any(kw in message.text.lower() for kw in ['code', 'код', 'login', 'telegram']):
-                                return potential_otp
+        async for message in client.get_chat_history(777000, limit=15):
+            if message.text and message.from_user:
+                if str(message.from_user.id) == "777000":
+                    patterns = [
+                        r'(?:code|код)[:\s]+(\d{5,6})',
+                        r'\b(\d{5,6})\b',
+                    ]
+                    
+                    for pattern in patterns:
+                        otp_match = re.search(pattern, message.text, re.IGNORECASE)
+                        if otp_match:
+                            potential_otp = otp_match.group(1) if otp_match.groups() else otp_match.group(0)
+                            if len(potential_otp) in [5, 6]:
+                                if any(kw in message.text.lower() for kw in ['code', 'код', 'login', 'telegram']):
+                                    return potential_otp
         return None
     except Exception as e:
         logger.error(f"[OTP ERROR] {e}")
@@ -529,6 +507,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     username = update.effective_user.username or f"User_{user_id}"
     
+    # Log new user registration
     if str(user_id) not in data["users"]:
         await log_user_registration(context, user_id, username)
     
@@ -545,6 +524,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_main_menu(update, context)
 
 async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show main menu - STYLISH VERSION"""
     user_id = update.effective_user.id
     username = update.effective_user.username or "User"
     
@@ -579,38 +559,30 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
     """
     
-    keyboard = [
-        [InlineKeyboardButton("💎 BUY VIRTUAL ACCOUNTS", callback_data="virtual_accounts")],
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🦋 BUY VIRTUAL ACCOUNTS", callback_data="virtual_accounts")],
         [InlineKeyboardButton("💳 MY BALANCE", callback_data=f"my_balance_{user_id}"),
          InlineKeyboardButton("➕ ADD FUNDS", callback_data="add_funds")],
         [InlineKeyboardButton("📞 SUPPORT", url=SUPPORT_GROUP_LINK)]
-    ]
+    ])
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    try:
-        if data.get("bot_photo"):
-            await context.bot.send_photo(
-                chat_id=update.effective_chat.id,
-                photo=data["bot_photo"],
-                caption=welcome_text,
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
-        else:
-            if update.message:
-                await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
-            elif update.callback_query:
-                await update.callback_query.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
-    except Exception as e:
-        logger.error(f"[MENU ERROR] {e}")
+    if data.get("bot_photo"):
+        await context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=data["bot_photo"],
+            caption=welcome_text,
+            reply_markup=keyboard,
+            parse_mode='Markdown'
+        )
+    else:
         if update.message:
-            await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
+            await update.message.reply_text(welcome_text, reply_markup=keyboard, parse_mode='Markdown')
         elif update.callback_query:
-            await update.callback_query.edit_message_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
+            await update.callback_query.message.reply_text(welcome_text, reply_markup=keyboard, parse_mode='Markdown')
 
 # Verify Join Handler
 async def verify_join_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle verification"""
     query = update.callback_query
     await query.answer("🔍 Verifying...")
     user_id = update.effective_user.id
@@ -619,6 +591,7 @@ async def verify_join_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         await show_main_menu(update, context)
         return
     
+    # Clear cache for fresh check
     if user_id in membership_cache:
         del membership_cache[user_id]
     
@@ -651,15 +624,13 @@ async def verify_join_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 💡 *Don't leave after joining!*
         """
         
-        keyboard = [
+        keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("📢 Join Channel", url=SUPPORT_CHANNEL_LINK)],
             [InlineKeyboardButton("👥 Join Group", url=SUPPORT_GROUP_LINK)],
             [InlineKeyboardButton("✅ Joined - Verify Now", callback_data="verify_join")]
-        ]
+        ])
         
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(error_text, reply_markup=reply_markup, parse_mode='Markdown')
+        await query.edit_message_text(error_text, reply_markup=keyboard, parse_mode='Markdown')
 
 # Main Menu Navigation
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -675,13 +646,11 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     clear_user_state(user_id)
     
-    keyboard = [
-        [InlineKeyboardButton("💎 VIRTUAL ACCOUNTS", callback_data="virtual_accounts")],
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🦋 VIRTUAL ACCOUNTS", callback_data="virtual_accounts")],
         [InlineKeyboardButton("💳 MY BALANCE", callback_data=f"my_balance_{user_id}")],
         [InlineKeyboardButton("➕ ADD FUNDS", callback_data="add_funds")]
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    ])
     
     welcome_text = f"""
 🔥 *Welcome Back!*
@@ -691,7 +660,7 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🎯 *Choose an option:*
     """
     
-    await query.edit_message_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(welcome_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Virtual Accounts Flow
 async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -710,16 +679,11 @@ async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
     countries = []
     keyboard = []
     
-    # ✅ Show countries with sessions
     for country, info in data["accounts"].items():
-        session_count = len(info.get("sessions", []))
-        quantity = info.get("quantity", 0)
-        
-        if quantity > 0 or session_count > 0:
+        if info.get("quantity", 0) > 0:
             countries.append(country)
-            display_qty = max(quantity, session_count)
             keyboard.append([InlineKeyboardButton(
-                f"💎 {country.upper()} ({display_qty} available) - {info['price']} INR",
+                f"🦋 {country.upper()} ({info['quantity']} available) - {info['price']} INR",
                 callback_data=f"country_{country}"
             )])
     
@@ -728,14 +692,12 @@ async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = "📭 *No accounts available currently!*"
     else:
         text = "🌍 *Choose Country:*\n\n" + \
-               "\n".join([f"• *{c.upper()}*: {max(data['accounts'][c]['quantity'], len(data['accounts'][c].get('sessions', [])))} - `{data['accounts'][c]['price']} INR`" 
+               "\n".join([f"• *{c.upper()}*: {data['accounts'][c]['quantity']} - `{data['accounts'][c]['price']} INR`" 
                          for c in countries])
     
     keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="main_menu")])
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 async def show_account_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -757,13 +719,11 @@ async def show_account_details(update: Update, context: ContextTypes.DEFAULT_TYP
     price = account_info["price"]
     balance = get_user_data(user_id)["balance"]
     
-    available = max(account_info["quantity"], len(account_info.get("sessions", [])))
-    
     text = f"""
 📱 *{country.upper()} Virtual Account*
 
 💰 *Price:* `{price} INR`
-📊 *Available:* `{available}`
+📊 *Available:* `{account_info['quantity']}`
 💳 *Your Balance:* `{balance} INR`
 
 ✅ *Fresh & Verified*
@@ -778,11 +738,10 @@ async def show_account_details(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 async def process_buy_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Ask quantity"""
     query = update.callback_query
     await query.answer()
     user_id = update.effective_user.id
@@ -797,7 +756,7 @@ async def process_buy_number(update: Update, context: ContextTypes.DEFAULT_TYPE)
     account_info = data["accounts"][country]
     price = account_info["price"]
     balance = get_user_data(user_id)["balance"]
-    available = max(account_info["quantity"], len(account_info.get("sessions", [])))
+    available = account_info["quantity"]
     
     text = f"""
 🛒 *Purchase {country.upper()}*
@@ -814,6 +773,7 @@ async def process_buy_number(update: Update, context: ContextTypes.DEFAULT_TYPE)
     return WAITING_FOR_QUANTITY
 
 async def handle_quantity_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle quantity"""
     user_id = update.effective_user.id
     text = update.message.text.strip()
     
@@ -837,6 +797,7 @@ async def handle_quantity_input(update: Update, context: ContextTypes.DEFAULT_TY
         username = data["users"][str(user_id)]["username"]
         
         if balance < total_price:
+            # Log insufficient balance
             await log_insufficient_balance(context, user_id, username, total_price, balance)
             
             text = f"""
@@ -848,9 +809,7 @@ async def handle_quantity_input(update: Update, context: ContextTypes.DEFAULT_TY
 ➕ *Add funds first!*
             """
             keyboard = [[InlineKeyboardButton("➕ Add Funds", callback_data="add_funds")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+            await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
             clear_user_state(user_id)
             return ConversationHandler.END
         
@@ -870,9 +829,7 @@ async def handle_quantity_input(update: Update, context: ContextTypes.DEFAULT_TY
             [InlineKeyboardButton("❌ CANCEL", callback_data=f"country_{country}")]
         ]
         
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.message.reply_text(confirmation_text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.message.reply_text(confirmation_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         clear_user_state(user_id)
         return ConversationHandler.END
         
@@ -881,6 +838,7 @@ async def handle_quantity_input(update: Update, context: ContextTypes.DEFAULT_TY
         return WAITING_FOR_QUANTITY
 
 async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Process purchase"""
     query = update.callback_query
     await query.answer()
     user_id = update.effective_user.id
@@ -897,13 +855,17 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("❌ Insufficient balance!", show_alert=True)
         return
     
-    available_sessions = account_info.get("sessions", [])
-    if len(available_sessions) < quantity:
+    if account_info["quantity"] < quantity:
         await query.answer("❌ Not enough accounts!", show_alert=True)
         return
     
-    purchased_sessions = available_sessions[:quantity]
-    remaining_sessions = available_sessions[quantity:]
+    sessions = account_info.get("sessions", [])
+    if len(sessions) < quantity:
+        await query.answer("❌ Not enough sessions!", show_alert=True)
+        return
+    
+    purchased_sessions = sessions[:quantity]
+    remaining_sessions = sessions[quantity:]
     
     data["users"][str(user_id)]["balance"] -= price
     purchase_record = {
@@ -916,32 +878,31 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     data["users"][str(user_id)]["purchases"].append(purchase_record)
     
-    account_info["quantity"] = max(0, account_info["quantity"] - quantity)
+    account_info["quantity"] -= quantity
     account_info["sessions"] = remaining_sessions
     
     save_data(data)
     
+    # Fetch phone numbers for logging
     async def fetch_phone_for_log(session_data):
         session_string = session_data.get("session")
         if session_string:
-            client = None
             try:
                 client = await create_client(session_string, f"{user_id}_log")
                 if client:
                     phone = await get_phone_number(client)
                     await client.stop()
                     return phone
-            except Exception as e:
-                if client:
-                    try:
-                        await client.stop()
-                    except:
-                        pass
-        return "Error"
+            except:
+                pass
+        return "Error fetching"
     
-    phone_tasks = [fetch_phone_for_log(s) for s in purchased_sessions]
-    phone_numbers = await asyncio.gather(*phone_tasks)
+    phone_numbers = []
+    for session_data in purchased_sessions:
+        phone = await fetch_phone_for_log(session_data)
+        phone_numbers.append(phone)
     
+    # Log successful purchase with phone numbers
     await log_number_purchase(context, user_id, username, country, quantity, price, phone_numbers)
     
     text = f"""
@@ -971,11 +932,10 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🛒 Buy More", callback_data="virtual_accounts")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 async def get_number_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Fetch phone numbers"""
     query = update.callback_query
     await query.answer("📱 Fetching...")
     
@@ -995,22 +955,18 @@ async def get_number_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.answer("❌ No sessions!", show_alert=True)
         return
     
+    # Fetch phone numbers in parallel
     async def fetch_phone(i, session_data):
         session_string = session_data.get("session")
         if session_string:
-            client = None
             try:
                 client = await create_client(session_string, f"{user_id}_{i}")
                 if client:
                     phone = await get_phone_number(client)
                     await client.stop()
                     return phone
-            except Exception as e:
-                if client:
-                    try:
-                        await client.stop()
-                    except:
-                        pass
+            except:
+                pass
         return "Error"
     
     tasks = [fetch_phone(i, s) for i, s in enumerate(sessions)]
@@ -1040,12 +996,10 @@ async def get_number_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         [InlineKeyboardButton("✅ LOGIN COMPLETE", callback_data=f"login_complete_{user_id}")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """✅ Fetch OTP with phone number and 2FA password"""
+    """Fetch OTP - OPTIMIZED"""
     query = update.callback_query
     await query.answer("🔍 Searching OTP...")
     
@@ -1079,58 +1033,29 @@ async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.edit_message_text(loading_text, parse_mode='Markdown')
     
-    async def fetch_otp_with_phone(i, session_data):
-        """✅ Returns OTP, phone number, AND 2FA password"""
+    # Fetch OTP in parallel
+    async def fetch_otp(i, session_data):
         session_string = session_data.get("session")
-        twofa_password = session_data.get("2fa", None)
-        
         if session_string:
             client = None
             try:
                 client = await create_client(session_string, f"{user_id}_{i}_otp")
                 if client:
-                    phone = await get_phone_number(client)
                     otp = await get_otp_from_telegram(client)
                     await client.stop()
-                    
                     if otp:
-                        return {
-                            "status": "success", 
-                            "otp": otp, 
-                            "phone": phone, 
-                            "2fa": twofa_password,
-                            "message": f"✅ OTP: `{otp}` ({phone})"
-                        }
-                    return {
-                        "status": "not_found", 
-                        "otp": None, 
-                        "phone": phone, 
-                        "2fa": twofa_password,
-                        "message": f"⏳ OTP not found yet ({phone})"
-                    }
+                        return {"status": "success", "otp": otp, "message": f"✅ OTP: `{otp}`"}
+                    return {"status": "not_found", "otp": None, "message": "⏳ OTP not found yet"}
             except Exception as e:
-                phone = "Unknown"
                 if client:
                     try:
                         await client.stop()
                     except:
                         pass
-                return {
-                    "status": "error", 
-                    "otp": None, 
-                    "phone": phone, 
-                    "2fa": twofa_password,
-                    "message": f"❌ Error: {str(e)[:20]}"
-                }
-        return {
-            "status": "error", 
-            "otp": None, 
-            "phone": "Unknown", 
-            "2fa": None,
-            "message": "❌ No session"
-        }
+                return {"status": "error", "otp": None, "message": f"❌ Error: {str(e)[:20]}"}
+        return {"status": "error", "otp": None, "message": "❌ No session"}
     
-    tasks = [fetch_otp_with_phone(i, s) for i, s in enumerate(sessions)]
+    tasks = [fetch_otp(i, s) for i, s in enumerate(sessions)]
     otp_results = await asyncio.gather(*tasks)
     
     text = f"""
@@ -1144,13 +1069,10 @@ async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success_count = 0
     for i, result in enumerate(otp_results, 1):
         text += f"\n*Account {i}:*\n{result['message']}\n"
-        
-        if result.get('2fa'):
-            text += f"🔐 *2FA Password:* `{result['2fa']}`\n"
-        
         if result['status'] == 'success':
             success_count += 1
     
+    # Log OTP fetch attempt
     await log_otp_fetched(context, user_id, username, country, success_count, len(sessions))
     
     if success_count > 0:
@@ -1163,9 +1085,7 @@ async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("✅ LOGIN COMPLETE", callback_data=f"login_complete_{user_id}")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Balance Functions
 async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1201,11 +1121,9 @@ async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
-# Add Funds Flow
+# Add Funds Flow - FIXED WITH QR CODE
 async def show_add_funds_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1236,9 +1154,7 @@ async def show_add_funds_options(update: Update, context: ContextTypes.DEFAULT_T
         [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
 
 async def ask_fund_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -1260,6 +1176,7 @@ Example: `50` or `100`
     return WAITING_FOR_AMOUNT
 
 async def handle_amount_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle amount input - FIXED WITH DYNAMIC QR"""
     user_id = update.effective_user.id
     text = update.message.text.strip()
     
@@ -1276,6 +1193,7 @@ async def handle_amount_input(update: Update, context: ContextTypes.DEFAULT_TYPE
         }
         save_data(data)
         
+        # Generate QR code with dynamic amount
         qr_image = generate_upi_qr(amount)
         
         payment_text = f"""
@@ -1299,12 +1217,14 @@ OR
         """
         
         if qr_image:
+            # Send QR code image
             await update.message.reply_photo(
                 photo=qr_image,
                 caption=payment_text,
                 parse_mode='Markdown'
             )
         else:
+            # Fallback if QR generation fails
             await update.message.reply_text(payment_text, parse_mode='Markdown')
         
         set_user_state(user_id, WAITING_FOR_SCREENSHOT, {"amount": amount})
@@ -1332,15 +1252,17 @@ Example: `WELCOME10`
     return WAITING_FOR_COUPON
 
 async def handle_coupon_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle coupon input - FIXED SINGLE USE PER USER"""
     user_id = update.effective_user.id
     coupon_code = update.message.text.strip().upper()
     username = data["users"][str(user_id)]["username"]
     
     if coupon_code not in data["coupons"]:
-        await update.message.reply_text("❌ *Invalid or expired coupon!*", parse_mode='Markdown')
+        await update.message.reply_text("❌ *Invalid coupon!*", parse_mode='Markdown')
         clear_user_state(user_id)
         return ConversationHandler.END
     
+    # CHECK IF USER ALREADY USED THIS COUPON
     if has_used_coupon(user_id, coupon_code):
         await update.message.reply_text(
             "❌ *You already used this coupon!*\n\n"
@@ -1352,12 +1274,23 @@ async def handle_coupon_input(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     coupon = data["coupons"][coupon_code]
     
+    # Apply coupon
     get_user_data(user_id)["balance"] += coupon["amount"]
+    
+    # MARK AS USED FOR THIS USER
     mark_coupon_used(user_id, coupon_code)
     
-    del data["coupons"][coupon_code]
+    # Decrease global uses
+    coupon["uses_left"] -= 1
+    
+    # Delete coupon if no uses left
+    if coupon["uses_left"] <= 0:
+        del data["coupons"][coupon_code]
     
     save_data(data)
+    
+    # Log coupon redemption
+    await log_coupon_redeemed(context, user_id, username, coupon_code, coupon["amount"])
     
     text = f"""
 ✅ *Coupon Redeemed!*
@@ -1366,18 +1299,17 @@ async def handle_coupon_input(update: Update, context: ContextTypes.DEFAULT_TYPE
 💰 *Added:* `{coupon['amount']} INR`
 💳 *Balance:* `{get_user_data(user_id)['balance']} INR`
 
-⚠️ *This coupon is now EXPIRED and cannot be used by anyone!*
+⚠️ *This coupon is now used and cannot be redeemed again by you!*
     """
     
     keyboard = [[InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
     
     clear_user_state(user_id)
     return ConversationHandler.END
 
 async def handle_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle payment screenshot"""
     user_id = update.effective_user.id
     state = get_user_state(user_id)
     username = data["users"][str(user_id)]["username"]
@@ -1389,6 +1321,7 @@ async def handle_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     amount = state["data"].get("amount", 0)
     
+    # Log payment submission
     await log_payment_submitted(context, user_id, username, amount)
     
     caption = f"""
@@ -1402,12 +1335,10 @@ async def handle_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🔍 *Please verify!*
     """
     
-    keyboard = [
+    keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ APPROVE", callback_data=f"approve_fund_{user_id}_{amount}")],
         [InlineKeyboardButton("❌ REJECT", callback_data=f"reject_fund_{user_id}")]
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    ])
     
     try:
         await context.bot.forward_message(
@@ -1419,7 +1350,7 @@ async def handle_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=OWNER_ID,
             text=caption,
-            reply_markup=reply_markup,
+            reply_markup=keyboard,
             parse_mode='Markdown'
         )
         
@@ -1433,25 +1364,23 @@ async def handle_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=OWNER_ID,
                 photo=BytesIO(photo_bytes),
                 caption=caption,
-                reply_markup=reply_markup,
+                reply_markup=keyboard,
                 parse_mode='Markdown'
             )
         except Exception as e2:
             logger.error(f"[SCREENSHOT FALLBACK ERROR] {e2}")
             await update.message.reply_text(
-                "❌ *Error occurred! Try again by /start*",
+                "❌ *Error occurred! Try again by /start*\n\n"
+                "💡 *Or contact:* @lTZ_ME_ADITYA_02",
                 parse_mode='Markdown'
             )
             return ConversationHandler.END
-    
-    balance_keyboard = [[InlineKeyboardButton("💳 Balance", callback_data=f"my_balance_{user_id}")]]
-    balance_reply_markup = InlineKeyboardMarkup(balance_keyboard)
     
     await update.message.reply_text(
         "✅ *Screenshot received!*\n\n"
         "🔄 *Owner will verify in 5-10 min*\n"
         "💳 *Check balance anytime*",
-        reply_markup=balance_reply_markup,
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("💳 Balance", callback_data=f"my_balance_{user_id}")]]),
         parse_mode='Markdown'
     )
     
@@ -1481,10 +1410,8 @@ async def approve_fund(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data["pending_payments"][str(user_id)]["status"] = "approved"
         save_data(data)
     
+    # Log payment approval
     await log_payment_approved(context, user_id, username, amount)
-    
-    main_menu_keyboard = [[InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]]
-    main_menu_reply_markup = InlineKeyboardMarkup(main_menu_keyboard)
     
     await context.bot.send_message(
         user_id,
@@ -1492,7 +1419,7 @@ async def approve_fund(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💰 *Amount:* `{amount} INR`\n"
         f"💳 *Balance:* `{get_user_data(user_id)['balance']} INR`",
         parse_mode='Markdown',
-        reply_markup=main_menu_reply_markup
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]])
     )
     
     await query.edit_message_text(f"✅ *Approved {amount} INR for user {user_id}!*", parse_mode='Markdown')
@@ -1503,8 +1430,10 @@ async def reject_fund(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = int(query.data.split("_")[2])
     username = data["users"].get(str(user_id), {}).get("username", f"User_{user_id}")
     
+    # Get amount from pending payments
     amount = data["pending_payments"].get(str(user_id), {}).get("amount", 0)
     
+    # Log payment rejection
     await log_payment_rejected(context, user_id, username, amount)
     
     await context.bot.send_message(
@@ -1521,243 +1450,6 @@ async def reject_fund(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.edit_message_text(f"❌ *Rejected user {user_id}!*", parse_mode='Markdown')
 
-# /add command (Owner only)
-async def add_funds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Owner command: /add"""
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        await update.message.reply_text("❌ *Unauthorized! Owner only.*", parse_mode='Markdown')
-        return ConversationHandler.END
-    
-    text = """
-➕ *Add Funds to User*
-
-📝 *Enter User ID:*
-
-Example: `1234567890`
-    """
-    
-    await update.message.reply_text(text, parse_mode='Markdown')
-    set_user_state(user_id, WAITING_FOR_ADD_USER_ID)
-    return WAITING_FOR_ADD_USER_ID
-
-async def handle_add_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        return ConversationHandler.END
-    
-    target_user_id = update.message.text.strip()
-    
-    if not target_user_id.isdigit():
-        await update.message.reply_text("❌ *Invalid User ID! Numbers only.*", parse_mode='Markdown')
-        return WAITING_FOR_ADD_USER_ID
-    
-    if target_user_id not in data["users"]:
-        await update.message.reply_text(
-            f"❌ *User `{target_user_id}` not found!*\n\n"
-            "💡 *User must /start the bot first.*",
-            parse_mode='Markdown'
-        )
-        clear_user_state(user_id)
-        return ConversationHandler.END
-    
-    text = f"""
-💰 *Add Amount*
-
-👤 *User:* {data["users"][target_user_id]["username"]}
-🆔 *ID:* `{target_user_id}`
-💳 *Current Balance:* `{data["users"][target_user_id]["balance"]} INR`
-
-📝 *Enter amount to add:*
-
-Example: `100`
-    """
-    
-    await update.message.reply_text(text, parse_mode='Markdown')
-    set_user_state(user_id, WAITING_FOR_ADD_AMOUNT, {"target_user_id": target_user_id})
-    return WAITING_FOR_ADD_AMOUNT
-
-async def handle_add_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        return ConversationHandler.END
-    
-    state = get_user_state(user_id)
-    target_user_id = state["data"]["target_user_id"]
-    amount_text = update.message.text.strip()
-    
-    try:
-        amount = int(amount_text)
-        
-        if amount <= 0:
-            await update.message.reply_text("❌ *Amount must be positive!*", parse_mode='Markdown')
-            return WAITING_FOR_ADD_AMOUNT
-        
-        data["users"][target_user_id]["balance"] += amount
-        new_balance = data["users"][target_user_id]["balance"]
-        username = data["users"][target_user_id]["username"]
-        
-        save_data(data)
-        
-        await log_fund_added(context, int(target_user_id), username, amount, new_balance)
-        
-        success_text = f"""
-✅ *Funds Added Successfully!*
-
-👤 *User:* {username}
-🆔 *ID:* `{target_user_id}`
-💰 *Amount Added:* `{amount} INR`
-💳 *New Balance:* `{new_balance} INR`
-        """
-        
-        await update.message.reply_text(success_text, parse_mode='Markdown')
-        
-        try:
-            await context.bot.send_message(
-                int(target_user_id),
-                f"🎉 *Funds Credited!*\n\n"
-                f"💰 *Amount:* `{amount} INR`\n"
-                f"💳 *New Balance:* `{new_balance} INR`\n\n"
-                f"✅ *Added by owner*",
-                parse_mode='Markdown'
-            )
-        except:
-            pass
-        
-        clear_user_state(user_id)
-        return ConversationHandler.END
-        
-    except ValueError:
-        await update.message.reply_text("❌ *Invalid! Numbers only.*", parse_mode='Markdown')
-        return WAITING_FOR_ADD_AMOUNT
-
-# /deduct command (Owner only)
-async def deduct_funds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Owner command: /deduct"""
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        await update.message.reply_text("❌ *Unauthorized! Owner only.*", parse_mode='Markdown')
-        return ConversationHandler.END
-    
-    text = """
-➖ *Deduct Funds from User*
-
-📝 *Enter User ID:*
-
-Example: `1234567890`
-    """
-    
-    await update.message.reply_text(text, parse_mode='Markdown')
-    set_user_state(user_id, WAITING_FOR_DEDUCT_USER_ID)
-    return WAITING_FOR_DEDUCT_USER_ID
-
-async def handle_deduct_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        return ConversationHandler.END
-    
-    target_user_id = update.message.text.strip()
-    
-    if not target_user_id.isdigit():
-        await update.message.reply_text("❌ *Invalid User ID! Numbers only.*", parse_mode='Markdown')
-        return WAITING_FOR_DEDUCT_USER_ID
-    
-    if target_user_id not in data["users"]:
-        await update.message.reply_text(
-            f"❌ *User `{target_user_id}` not found!*\n\n"
-            "💡 *User must /start the bot first.*",
-            parse_mode='Markdown'
-        )
-        clear_user_state(user_id)
-        return ConversationHandler.END
-    
-    text = f"""
-💰 *Deduct Amount*
-
-👤 *User:* {data["users"][target_user_id]["username"]}
-🆔 *ID:* `{target_user_id}`
-💳 *Current Balance:* `{data["users"][target_user_id]["balance"]} INR`
-
-📝 *Enter amount to deduct:*
-
-Example: `50`
-    """
-    
-    await update.message.reply_text(text, parse_mode='Markdown')
-    set_user_state(user_id, WAITING_FOR_DEDUCT_AMOUNT, {"target_user_id": target_user_id})
-    return WAITING_FOR_DEDUCT_AMOUNT
-
-async def handle_deduct_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    if not is_owner(user_id):
-        return ConversationHandler.END
-    
-    state = get_user_state(user_id)
-    target_user_id = state["data"]["target_user_id"]
-    amount_text = update.message.text.strip()
-    
-    try:
-        amount = int(amount_text)
-        
-        if amount <= 0:
-            await update.message.reply_text("❌ *Amount must be positive!*", parse_mode='Markdown')
-            return WAITING_FOR_DEDUCT_AMOUNT
-        
-        current_balance = data["users"][target_user_id]["balance"]
-        
-        if amount > current_balance:
-            await update.message.reply_text(
-                f"❌ *Insufficient balance!*\n\n"
-                f"💳 *Current Balance:* `{current_balance} INR`\n"
-                f"💰 *Trying to deduct:* `{amount} INR`",
-                parse_mode='Markdown'
-            )
-            return WAITING_FOR_DEDUCT_AMOUNT
-        
-        data["users"][target_user_id]["balance"] -= amount
-        new_balance = data["users"][target_user_id]["balance"]
-        username = data["users"][target_user_id]["username"]
-        
-        save_data(data)
-        
-        await log_fund_deducted(context, int(target_user_id), username, amount, new_balance)
-        
-        success_text = f"""
-✅ *Funds Deducted Successfully!*
-
-👤 *User:* {username}
-🆔 *ID:* `{target_user_id}`
-💰 *Amount Deducted:* `{amount} INR`
-💳 *New Balance:* `{new_balance} INR`
-        """
-        
-        await update.message.reply_text(success_text, parse_mode='Markdown')
-        
-        try:
-            await context.bot.send_message(
-                int(target_user_id),
-                f"⚠️ *Funds Deducted!*\n\n"
-                f"💰 *Amount:* `{amount} INR`\n"
-                f"💳 *New Balance:* `{new_balance} INR`\n\n"
-                f"❌ *Deducted by owner*",
-                parse_mode='Markdown'
-            )
-        except:
-            pass
-        
-        clear_user_state(user_id)
-        return ConversationHandler.END
-        
-    except ValueError:
-        await update.message.reply_text("❌ *Invalid! Numbers only.*", parse_mode='Markdown')
-        return WAITING_FOR_DEDUCT_AMOUNT
-
 # Owner Panel
 async def owner_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -1766,7 +1458,7 @@ async def owner_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ *Unauthorized!*", parse_mode='Markdown')
         return ConversationHandler.END
     
-    keyboard = [
+    keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ Add Number", callback_data="owner_addnumber")],
         [InlineKeyboardButton("🗑 Delete Country", callback_data="owner_delete")],
         [InlineKeyboardButton("🎟 Create Discount", callback_data="owner_discount")],
@@ -1776,9 +1468,7 @@ async def owner_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("👥 User Stats", callback_data="owner_stats")],
         [InlineKeyboardButton("📸 Set Bot Photo", callback_data="owner_setdp")],
         [InlineKeyboardButton("🏠 Close", callback_data="main_menu")]
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    ])
     
     text = """
 🔧 *Owner Panel*
@@ -1789,9 +1479,9 @@ Choose action:
     """
     
     if update.message:
-        await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.message.reply_text(text, reply_markup=keyboard, parse_mode='Markdown')
     elif update.callback_query:
-        await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.callback_query.edit_message_text(text, reply_markup=keyboard, parse_mode='Markdown')
 
 async def owner_add_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -1835,7 +1525,6 @@ async def handle_country_input(update: Update, context: ContextTypes.DEFAULT_TYP
         set_user_state(user_id, WAITING_FOR_ADD_MORE_SESSIONS, {"country": country, "price": existing_info['price']})
         return WAITING_FOR_ADD_MORE_SESSIONS
     
-    # ✅ CRITICAL: Set state first, create country in handle_price_input
     set_user_state(user_id, WAITING_FOR_PRICE, {"country": country})
     
     text = f"""
@@ -1850,6 +1539,7 @@ Example: `60`
     return WAITING_FOR_PRICE
 
 async def handle_add_more_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle add more choice"""
     user_id = update.effective_user.id
     if not is_owner(user_id):
         return ConversationHandler.END
@@ -1870,7 +1560,7 @@ async def handle_add_more_choice(update: Update, context: ContextTypes.DEFAULT_T
 
 💰 *Price:* `{old_price} INR`
 
-📝 *Send session string:*
+📝 *Send session or `/skip`:*
         """
         await update.message.reply_text(text, parse_mode='Markdown')
         set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": old_price, "mode": "add_more"})
@@ -1892,7 +1582,6 @@ async def handle_add_more_choice(update: Update, context: ContextTypes.DEFAULT_T
         return WAITING_FOR_ADD_MORE_SESSIONS
 
 async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """✅ CRITICAL: Country creation और session storage यहाँ होता है"""
     user_id = update.effective_user.id
     if not is_owner(user_id):
         return ConversationHandler.END
@@ -1904,21 +1593,15 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         state = get_user_state(user_id)
         country = state["data"]["country"]
         
-        # ✅ CRITICAL: Create or update country structure with sessions array
         if country not in data["accounts"]:
             data["accounts"][country] = {
                 "price": price,
                 "quantity": 0,
-                "sessions": []  # ✅ यहीं sessions array बनता है!
+                "sessions": []
             }
-            logger.info(f"[COUNTRY CREATED] ✅ {country} with price {price}")
         else:
             data["accounts"][country]["price"] = price
-            logger.info(f"[PRICE UPDATED] ✅ {country} to {price}")
-        
-        # ✅ CRITICAL: Immediate save to virtual_bot_data.json
         save_data(data)
-        logger.info(f"[DATA SAVED] ✅ After creating/updating {country}")
         
         set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": price})
         
@@ -1927,7 +1610,7 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 💰 *Price:* `{price} INR`
 
-📝 *Send session string:*
+📝 *Send session or `/skip`:*
         """
         
         await update.message.reply_text(response_text, parse_mode='Markdown')
@@ -1938,7 +1621,6 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return WAITING_FOR_PRICE
 
 async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """✅ CRITICAL: Session data ko virtual_bot_data.json में save करता है"""
     user_id = update.effective_user.id
     if not is_owner(user_id):
         return ConversationHandler.END
@@ -1949,67 +1631,15 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         state = get_user_state(user_id)
         country = state["data"]["country"]
         clear_user_state(user_id)
-        
-        final_text = f"✅ *Completed for {country}!*\n\n"
-        final_text += "📊 *All Countries:*\n\n"
-        final_text += "\n".join([f"• *{c.upper()}*: {max(info['quantity'], len(info.get('sessions', [])))} - {info['price']} INR" 
-                      for c, info in data["accounts"].items()])
-        
-        await update.message.reply_text(final_text, parse_mode='Markdown')
+        await update.message.reply_text(
+            f"✅ *Completed for {country}!*\n\n" +
+            "\n".join([f"• *{c}*: {info['quantity']} - {info['price']} INR" 
+                      for c, info in data["accounts"].items()]),
+            parse_mode='Markdown'
+        )
         return ConversationHandler.END
     
     state = get_user_state(user_id)
-    
-    # Check if waiting for 2FA
-    if state["state"] == WAITING_FOR_2FA:
-        twofa_password = text if text != "/skip" else None
-        
-        session_string = state["data"]["session_string"]
-        country = state["data"]["country"]
-        price = state["data"]["price"]
-        phone_number = state["data"]["phone_number"]
-        
-        # ✅ CRITICAL: Session data बनाना
-        session_data = {
-            "session": session_string,
-            "added": datetime.now().isoformat()
-        }
-        
-        if twofa_password:
-            session_data["2fa"] = twofa_password
-        
-        # ✅ CRITICAL: Session को virtual_bot_data.json में save करना
-        logger.info(f"[SESSION ADDING] 📝 Adding session to {country}")
-        logger.info(f"[SESSION ADDING] 📁 Saving to: {DB_FILE}")
-        
-        data["accounts"][country]["sessions"].append(session_data)
-        data["accounts"][country]["quantity"] += 1
-        
-        # ✅ CRITICAL: Immediate save
-        save_data(data)
-        logger.info(f"[SESSION SAVED] ✅ {country} - Total sessions: {len(data['accounts'][country]['sessions'])}")
-        
-        await log_session_added(context, country, 1, price, phone_number)
-        
-        response_text = f"""
-✅ *Added!*
-
-📱 *Country:* `{country}`
-📞 *Number:* `{phone_number}`
-💰 *Price:* `{price} INR`
-🔐 *2FA:* {'Yes' if twofa_password else 'No'}
-📊 *Total:* `{data["accounts"][country]["quantity"]}`
-📁 *Saved to:* `{DB_FILE}`
-
-💡 *Add another session or `/skip`:*
-        """
-        
-        await update.message.reply_text(response_text, parse_mode='Markdown')
-        
-        set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": price})
-        return WAITING_FOR_SESSION
-    
-    # User sent session string
     country = state["data"]["country"]
     price = state["data"]["price"]
     
@@ -2017,37 +1647,32 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("❌ *Session too short!*", parse_mode='Markdown')
         return WAITING_FOR_SESSION
     
-    # Fetch phone number
-    phone_number = "Fetching..."
-    try:
-        client = await create_client(text, f"owner_add_{user_id}")
-        if client:
-            phone_number = await get_phone_number(client)
-            await client.stop()
-    except Exception as e:
-        logger.error(f"[PHONE FETCH ERROR] {e}")
-        phone_number = "Error fetching"
+    session_data = {
+        "session": text,
+        "added": datetime.now().isoformat()
+    }
+    
+    data["accounts"][country]["sessions"].append(session_data)
+    data["accounts"][country]["quantity"] += 1
+    save_data(data)
+    
+    # Log session added
+    await log_session_added(context, country, 1, price)
     
     response_text = f"""
-📞 *Session Added: {phone_number}*
+✅ *Added!*
 
-🔐 *Does this account have 2FA password?*
+📱 *Country:* `{country}`
+💰 *Price:* `{price} INR`
+📊 *Total:* `{data["accounts"][country]["quantity"]}`
 
-💡 *If yes, send the 2FA password*
-💡 *If no, type `/skip`*
+💡 *Add another or `/skip`:*
     """
     
     await update.message.reply_text(response_text, parse_mode='Markdown')
-    
-    set_user_state(user_id, WAITING_FOR_2FA, {
-        "session_string": text,
-        "country": country,
-        "price": price,
-        "phone_number": phone_number
-    })
-    return WAITING_FOR_2FA
+    return WAITING_FOR_SESSION
 
-# Owner Discount/Coupon
+# Owner Discount/Coupon - FIXED SINGLE USE
 async def create_discount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -2064,7 +1689,6 @@ async def create_discount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Example: `10` for 10 INR off
 
 ⚠️ *Each user can use this discount only ONCE*
-⚠️ *Code expires after FIRST redemption*
     """
     
     await query.edit_message_text(text, parse_mode='Markdown')
@@ -2085,25 +1709,27 @@ async def handle_discount_input(update: Update, context: ContextTypes.DEFAULT_TY
         
         data["discount_codes"][code] = {
             "discount": discount,
-            "uses_left": 1,
+            "uses_left": 999999,  # Unlimited uses but single per user
             "created": datetime.now().isoformat()
         }
         save_data(data)
+        
+        # Log discount creation
+        await log_discount_created(context, code, discount)
         
         response_text = f"""
 ✅ *Discount Created!*
 
 🎟 *Code:* `{code}`
 💰 *Discount:* `{discount} INR`
-📊 *Usage:* Single use (expires after first redemption)
+📊 *Usage:* One-time per user
 
 *Copy:* `{code}`
         """
         
         keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await update.message.reply_text(response_text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.message.reply_text(response_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         clear_user_state(user_id)
         return ConversationHandler.END
         
@@ -2126,8 +1752,7 @@ async def create_coupon(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 Example: `50` for 50 INR
 
-⚠️ *Coupon expires after FIRST redemption*
-⚠️ *Cannot be used again by ANYONE*
+⚠️ *Each user can use this coupon only ONCE*
     """
     
     await query.edit_message_text(text, parse_mode='Markdown')
@@ -2148,25 +1773,27 @@ async def handle_coupon_input_owner(update: Update, context: ContextTypes.DEFAUL
         
         data["coupons"][code] = {
             "amount": amount,
-            "uses_left": 1,
+            "uses_left": 999999,  # Unlimited uses but single per user
             "created": datetime.now().isoformat()
         }
         save_data(data)
+        
+        # Log coupon creation
+        await log_coupon_created(context, code, amount)
         
         response_text = f"""
 ✅ *Coupon Created!*
 
 🎟 *Code:* `{code}`
 💰 *Amount:* `{amount} INR`
-📊 *Usage:* Single use (expires after first redemption)
+📊 *Usage:* One-time per user
 
 *Copy:* `{code}`
         """
         
         keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await update.message.reply_text(response_text, reply_markup=reply_markup, parse_mode='Markdown')
+        await update.message.reply_text(response_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         clear_user_state(user_id)
         return ConversationHandler.END
         
@@ -2221,14 +1848,12 @@ async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT
 ⚠️ *Send to all users?*
     """
     
-    keyboard = [
+    keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ SEND", callback_data=f"broadcast_confirm")],
         [InlineKeyboardButton("❌ CANCEL", callback_data="owner_panel")]
-    ]
+    ])
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(confirmation_text, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.message.reply_text(confirmation_text, reply_markup=keyboard, parse_mode='Markdown')
     
     set_user_state(user_id, WAITING_FOR_BROADCAST_MESSAGE, {"message": broadcast_message})
     return ConversationHandler.END
@@ -2264,30 +1889,18 @@ async def broadcast_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.edit_message_text(progress_text, parse_mode='Markdown')
     
-    async def send_to_user(target_user_id):
+    for user_id_str in data['users'].keys():
         try:
+            target_user_id = int(user_id_str)
             await context.bot.send_message(
-                chat_id=int(target_user_id),
+                chat_id=target_user_id,
                 text=f"📣 *Broadcast Message*\n\n{broadcast_message}",
                 parse_mode='Markdown'
             )
-            return True
-        except Exception as e:
-            logger.error(f"[BROADCAST ERROR] User {target_user_id}: {e}")
-            return False
-    
-    batch_size = 20
-    user_ids = list(data['users'].keys())
-    
-    for i in range(0, len(user_ids), batch_size):
-        batch = user_ids[i:i+batch_size]
-        results = await asyncio.gather(*[send_to_user(uid) for uid in batch])
-        
-        success_count += sum(results)
-        failed_count += len(results) - sum(results)
-        
-        if i % 50 == 0:
-            progress_text = f"""
+            success_count += 1
+            
+            if success_count % 10 == 0:
+                progress_text = f"""
 📤 *Broadcasting...*
 
 👥 *Total:* `{total_users}`
@@ -2295,14 +1908,19 @@ async def broadcast_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ❌ *Failed:* `{failed_count}`
 
 ⏳ *In progress...*
-            """
-            try:
-                await query.edit_message_text(progress_text, parse_mode='Markdown')
-            except:
-                pass
-        
-        await asyncio.sleep(0.1)
+                """
+                try:
+                    await query.edit_message_text(progress_text, parse_mode='Markdown')
+                except:
+                    pass
+            
+            await asyncio.sleep(0.05)
+            
+        except Exception as e:
+            failed_count += 1
+            logger.error(f"[BROADCAST ERROR] User {user_id_str}: {e}")
     
+    # Log broadcast completion
     await log_broadcast_sent(context, total_users, success_count, failed_count)
     
     final_text = f"""
@@ -2316,9 +1934,8 @@ async def broadcast_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     
     keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(final_text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(final_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
     clear_user_state(user_id)
 
 # Owner Delete Country
@@ -2335,8 +1952,7 @@ async def owner_delete_country(update: Update, context: ContextTypes.DEFAULT_TYP
     if not countries:
         text = "📭 *No countries to delete!*"
         keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         return
     
     keyboard = []
@@ -2344,8 +1960,6 @@ async def owner_delete_country(update: Update, context: ContextTypes.DEFAULT_TYP
         keyboard.append([InlineKeyboardButton(f"🗑 {country.upper()}", callback_data=f"delete_confirm_{country}")])
     
     keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="owner_panel")])
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
     
     text = """
 🗑 *Delete Country*
@@ -2355,7 +1969,7 @@ async def owner_delete_country(update: Update, context: ContextTypes.DEFAULT_TYP
 Choose country:
     """
     
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 async def confirm_delete_country(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -2370,6 +1984,7 @@ async def confirm_delete_country(update: Update, context: ContextTypes.DEFAULT_T
         quantity = data["accounts"][country]["quantity"]
         price = data["accounts"][country]["price"]
         
+        # Log country deletion
         await log_country_deleted(context, country, quantity, price)
         
         del data["accounts"][country]
@@ -2386,9 +2001,8 @@ async def confirm_delete_country(update: Update, context: ContextTypes.DEFAULT_T
         text = f"❌ *'{country}' not found!*"
     
     keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Owner View Payments
 async def owner_view_payments(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2405,8 +2019,7 @@ async def owner_view_payments(update: Update, context: ContextTypes.DEFAULT_TYPE
     if not pending_payments:
         text = "📭 *No pending payments!*"
         keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         return
     
     text = "💳 *Pending Payments*\n\n"
@@ -2426,9 +2039,7 @@ async def owner_view_payments(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     keyboard.append([InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")])
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Owner Stats
 async def owner_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2444,7 +2055,7 @@ async def owner_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_revenue = sum(purchase["price"] for user in data["users"].values() 
                        for purchase in user["purchases"] if purchase.get("status") == "completed")
     
-    available_accounts = sum(max(info["quantity"], len(info.get("sessions", []))) for info in data["accounts"].values())
+    available_accounts = sum(info["quantity"] for info in data["accounts"].values())
     
     text = f"""
 📊 *Bot Statistics*
@@ -2459,16 +2070,14 @@ async def owner_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     
     for country, info in data["accounts"].items():
-        display_qty = max(info["quantity"], len(info.get("sessions", [])))
-        if display_qty > 0:
-            text += f"\n• *{country.upper()}*: `{display_qty}` - `{info['price']} INR`"
+        if info["quantity"] > 0:
+            text += f"\n• *{country}*: `{info['quantity']}` - `{info['price']} INR`"
     
     text += f"\n\n⏰ `{datetime.now().strftime('%H:%M %d/%m/%Y')}`"
     
     keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Set Bot Photo
 async def set_bot_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2505,20 +2114,17 @@ async def handle_photo_owner(update: Update, context: ContextTypes.DEFAULT_TYPE)
     data["bot_photo"] = photo.file_id
     save_data(data)
     
-    panel_keyboard = [[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]
-    panel_reply_markup = InlineKeyboardMarkup(panel_keyboard)
-    
     await update.message.reply_text(
         "✅ *Bot photo updated!*\n\n"
         "📸 *Restart bot to see*",
-        reply_markup=panel_reply_markup,
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🏠 Panel", callback_data="owner_panel")]]),
         parse_mode='Markdown'
     )
     
     clear_user_state(user_id)
     return ConversationHandler.END
 
-# Discount Application
+# Discount Application - FIXED SINGLE USE
 async def apply_discount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -2530,8 +2136,6 @@ async def apply_discount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 💡 *Enter code:*
 
 Example: `DISCOUNT1234`
-
-⚠️ *Code expires after FIRST redemption*
     """
     
     await query.edit_message_text(text, parse_mode='Markdown')
@@ -2539,6 +2143,7 @@ Example: `DISCOUNT1234`
     return WAITING_FOR_DISCOUNT_CODE
 
 async def handle_discount_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle discount code - FIXED SINGLE USE PER USER"""
     user_id = update.effective_user.id
     state = get_user_state(user_id)
     username = data["users"][str(user_id)]["username"]
@@ -2549,10 +2154,11 @@ async def handle_discount_code(update: Update, context: ContextTypes.DEFAULT_TYP
     code = update.message.text.strip().upper()
     
     if code not in data["discount_codes"]:
-        await update.message.reply_text("❌ *Invalid or expired discount code!*", parse_mode='Markdown')
+        await update.message.reply_text("❌ *Invalid code!*", parse_mode='Markdown')
         clear_user_state(user_id)
         return ConversationHandler.END
     
+    # CHECK IF USER ALREADY USED THIS DISCOUNT
     if has_used_discount(user_id, code):
         await update.message.reply_text(
             "❌ *You already used this discount code!*\n\n"
@@ -2565,8 +2171,8 @@ async def handle_discount_code(update: Update, context: ContextTypes.DEFAULT_TYP
     discount_info = data["discount_codes"][code]
     discount_amount = discount_info["discount"]
     
+    # MARK AS USED FOR THIS USER
     mark_discount_used(user_id, code)
-    del data["discount_codes"][code]
     
     user_state = get_user_state(user_id)
     if "discount" not in user_state["data"]:
@@ -2574,7 +2180,8 @@ async def handle_discount_code(update: Update, context: ContextTypes.DEFAULT_TYP
     user_state["data"]["discount"] += discount_amount
     set_user_state(user_id, user_state["state"], user_state["data"])
     
-    save_data(data)
+    # Log discount application
+    await log_discount_applied(context, user_id, username, code, discount_amount)
     
     text = f"""
 ✅ *Discount Applied!*
@@ -2583,13 +2190,11 @@ async def handle_discount_code(update: Update, context: ContextTypes.DEFAULT_TYP
 💰 *Discount:* `{discount_amount} INR`
 💎 *Total Discount:* `{user_state["data"]["discount"]} INR`
 
-⚠️ *This code is now EXPIRED and cannot be used by anyone!*
+⚠️ *This code is now used and cannot be applied again by you!*
     """
     
     keyboard = [[InlineKeyboardButton("🛒 Shop", callback_data="virtual_accounts")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
     
     clear_user_state(user_id)
     return ConversationHandler.END
@@ -2615,9 +2220,7 @@ async def login_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # No Accounts
 async def no_accounts_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2637,9 +2240,7 @@ async def no_accounts_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         [InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 
 # Generic Button Handler
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2659,30 +2260,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await show_force_join_message(update, context)
                 return
         
-        handlers = {
-            "main_menu": main_menu,
-            "virtual_accounts": show_countries,
-            "add_funds": show_add_funds_options,
-            "buy_fund": ask_fund_amount,
-            "coupon_code": ask_coupon_code,
-            "no_accounts": no_accounts_handler,
-            "owner_panel": owner_panel,
-            "owner_addnumber": owner_add_number,
-            "owner_delete": owner_delete_country,
-            "owner_discount": create_discount,
-            "owner_coupon": create_coupon,
-            "owner_broadcast": broadcast_start,
-            "broadcast_confirm": broadcast_confirm,
-            "owner_payments": owner_view_payments,
-            "owner_stats": owner_stats,
-            "owner_setdp": set_bot_photo,
-            "discount": apply_discount,
-        }
-        
-        if data_str in handlers:
-            return await handlers[data_str](update, context)
+        if data_str == "main_menu":
+            await main_menu(update, context)
+        elif data_str == "virtual_accounts":
+            await show_countries(update, context)
         elif data_str.startswith("my_balance_"):
             await show_balance(update, context)
+        elif data_str == "add_funds":
+            await show_add_funds_options(update, context)
+        elif data_str == "buy_fund":
+            return await ask_fund_amount(update, context)
+        elif data_str == "coupon_code":
+            return await ask_coupon_code(update, context)
         elif data_str.startswith("country_"):
             await show_account_details(update, context)
         elif data_str.startswith("buy_number_"):
@@ -2695,17 +2284,41 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await get_otp_handler(update, context)
         elif data_str.startswith("login_complete_"):
             await login_complete(update, context)
+        elif data_str == "no_accounts":
+            await no_accounts_handler(update, context)
+        elif data_str == "owner_panel":
+            await owner_panel(update, context)
+        elif data_str == "owner_addnumber":
+            return await owner_add_number(update, context)
+        elif data_str == "owner_delete":
+            await owner_delete_country(update, context)
         elif data_str.startswith("delete_confirm_"):
             await confirm_delete_country(update, context)
+        elif data_str == "owner_discount":
+            return await create_discount(update, context)
+        elif data_str == "owner_coupon":
+            return await create_coupon(update, context)
+        elif data_str == "owner_broadcast":
+            return await broadcast_start(update, context)
+        elif data_str == "broadcast_confirm":
+            await broadcast_confirm(update, context)
+        elif data_str == "owner_payments":
+            await owner_view_payments(update, context)
+        elif data_str == "owner_stats":
+            await owner_stats(update, context)
+        elif data_str == "owner_setdp":
+            return await set_bot_photo(update, context)
         elif data_str.startswith("approve_fund_"):
             await approve_fund(update, context)
         elif data_str.startswith("reject_fund_"):
             await reject_fund(update, context)
+        elif data_str == "discount":
+            return await apply_discount(update, context)
         else:
             await query.answer("⚠️ Unknown action!", show_alert=True)
     except Exception as e:
-        logger.error(f"[BUTTON ERROR] {type(e).__name__}: {str(e)}")
-        await query.answer("❌ Error! Try /start", show_alert=True)
+        logger.error(f"[BUTTON ERROR] {e}")
+        await query.answer("❌ Error occurred! Try again by /start", show_alert=True)
 
 # Error Handler
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2714,7 +2327,8 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update and update.effective_message:
         try:
             await update.effective_message.reply_text(
-                "❌ *Error occurred! Try /start*",
+                "❌ *Error occurred! Try again by /start*\n\n"
+                "💡 *Or contact:* @lTZ_ME_ADITYA_02",
                 parse_mode='Markdown'
             )
         except:
@@ -2727,27 +2341,28 @@ async def global_text_fallback(update: Update, context: ContextTypes.DEFAULT_TYP
     state_info = get_user_state(user_id)
     current_state = state_info["state"]
     
-    state_handlers = {
-        WAITING_FOR_AMOUNT: handle_amount_input,
-        WAITING_FOR_COUPON: handle_coupon_input,
-        WAITING_FOR_COUNTRY: handle_country_input,
-        WAITING_FOR_PRICE: handle_price_input,
-        WAITING_FOR_SESSION: handle_session_input,
-        WAITING_FOR_DISCOUNT_AMOUNT: handle_discount_input,
-        WAITING_FOR_COUPON_AMOUNT: handle_coupon_input_owner,
-        WAITING_FOR_DISCOUNT_CODE: handle_discount_code,
-        WAITING_FOR_QUANTITY: handle_quantity_input,
-        WAITING_FOR_ADD_MORE_SESSIONS: handle_add_more_choice,
-        WAITING_FOR_BROADCAST_MESSAGE: handle_broadcast_message,
-        WAITING_FOR_2FA: handle_session_input,
-        WAITING_FOR_ADD_USER_ID: handle_add_user_id,
-        WAITING_FOR_ADD_AMOUNT: handle_add_amount,
-        WAITING_FOR_DEDUCT_USER_ID: handle_deduct_user_id,
-        WAITING_FOR_DEDUCT_AMOUNT: handle_deduct_amount,
-    }
-    
-    if current_state in state_handlers:
-        return await state_handlers[current_state](update, context)
+    if current_state == WAITING_FOR_AMOUNT:
+        return await handle_amount_input(update, context)
+    elif current_state == WAITING_FOR_COUPON:
+        return await handle_coupon_input(update, context)
+    elif current_state == WAITING_FOR_COUNTRY:
+        return await handle_country_input(update, context)
+    elif current_state == WAITING_FOR_PRICE:
+        return await handle_price_input(update, context)
+    elif current_state == WAITING_FOR_SESSION:
+        return await handle_session_input(update, context)
+    elif current_state == WAITING_FOR_DISCOUNT_AMOUNT:
+        return await handle_discount_input(update, context)
+    elif current_state == WAITING_FOR_COUPON_AMOUNT:
+        return await handle_coupon_input_owner(update, context)
+    elif current_state == WAITING_FOR_DISCOUNT_CODE:
+        return await handle_discount_code(update, context)
+    elif current_state == WAITING_FOR_QUANTITY:
+        return await handle_quantity_input(update, context)
+    elif current_state == WAITING_FOR_ADD_MORE_SESSIONS:
+        return await handle_add_more_choice(update, context)
+    elif current_state == WAITING_FOR_BROADCAST_MESSAGE:
+        return await handle_broadcast_message(update, context)
     else:
         await update.message.reply_text(
             "Use /start to begin or /panel for owner",
@@ -2762,8 +2377,6 @@ def get_conversation_handler():
         entry_points=[
             CommandHandler("start", start),
             CommandHandler("panel", owner_panel),
-            CommandHandler("add", add_funds_command),
-            CommandHandler("deduct", deduct_funds_command),
             CallbackQueryHandler(button_handler)
         ],
         states={
@@ -2780,11 +2393,6 @@ def get_conversation_handler():
             WAITING_FOR_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_quantity_input)],
             WAITING_FOR_ADD_MORE_SESSIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_add_more_choice)],
             WAITING_FOR_BROADCAST_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message)],
-            WAITING_FOR_2FA: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_session_input)],
-            WAITING_FOR_ADD_USER_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_add_user_id)],
-            WAITING_FOR_ADD_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_add_amount)],
-            WAITING_FOR_DEDUCT_USER_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_deduct_user_id)],
-            WAITING_FOR_DEDUCT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_deduct_amount)],
         },
         fallbacks=[
             CommandHandler("start", start),
@@ -2795,24 +2403,8 @@ def get_conversation_handler():
         per_chat=True
     )
 
-# Graceful shutdown
-async def shutdown(application: Application):
-    """✅ Save data before shutdown"""
-    logger.info("🛑 Shutting down gracefully...")
-    await save_data_async(data)
-    logger.info("💾 Data saved. Goodbye!")
-
-def signal_handler(signum, frame):
-    """Handle shutdown signals"""
-    logger.info(f"⚠️ Received signal {signum}")
-    sys.exit(0)
-
 # Main function
 def main():
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    
     application = Application.builder().token(BOT_TOKEN).build()
     
     conv_handler = get_conversation_handler()
@@ -2824,22 +2416,18 @@ def main():
     application.add_error_handler(error_handler)
     
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("🔥 VIRTUAL ACCOUNT BOT - FIXED VERSION! 🔥")
+    print("🔥 VIRTUAL ACCOUNT BOT - 100% FIXED! 🔥")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"\n👑 Owner: {OWNER_ID}")
     print(f"📊 Users: {len(data['users'])}")
     print(f"🌍 Countries: {len(data['accounts'])}")
-    print(f"\n✅ DATA STORAGE:")
-    print(f"   📁 Database File: {DB_FILE}")
-    print(f"   💾 All sessions saved in: {DB_FILE}")
-    print(f"   🔒 No external files used!")
-    print(f"\n✅ FIXES APPLIED:")
-    print("   • ✅ Sessions save to virtual_bot_data.json ONLY")
-    print("   • ✅ Immediate save after every session add")
-    print("   • ✅ Data verification after save")
-    print("   • ✅ Detailed logging for debugging")
-    print("   • ✅ 2FA password support")
-    print("   • ✅ /add & /deduct commands")
+    print(f"\n✅ FIXED FEATURES:")
+    print("   • ✅ Dynamic QR code generation")
+    print("   • ✅ Single-use coupons per user")
+    print("   • ✅ Single-use discounts per user")
+    print("   • ✅ Stylish welcome message")
+    print("   • ✅ Complete logging system")
+    print("   • ✅ Phone number logs on sale")
     print(f"\n🔐 FORCE JOIN ENABLED!")
     print(f"📢 Channel: {SUPPORT_CHANNEL_LINK}")
     print(f"👥 Group: {SUPPORT_GROUP_LINK}")
@@ -2848,17 +2436,10 @@ def main():
     print("🚀 Bot is LIVE! Press Ctrl+C to stop.")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
     
-    try:
-        application.run_polling(
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True
-        )
-    except KeyboardInterrupt:
-        logger.info("⌨️ Received keyboard interrupt")
-    finally:
-        # Save data on exit
-        save_data(data)
-        logger.info("✅ Bot stopped gracefully")
+    application.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+        drop_pending_updates=True
+    )
 
 if __name__ == '__main__':
     main()
