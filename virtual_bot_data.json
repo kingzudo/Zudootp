@@ -1,7 +1,7 @@
 {
   "users": {
     "7661825494": {
-      "balance": 1001830,
+      "balance": 1001792,
       "purchases": [
         {
           "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
@@ -36,12 +36,27 @@
           ],
           "timestamp": "2026-02-01T12:41:46.464653",
           "status": "completed"
+        },
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 1,
+          "price": 38,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+              "added": "2026-02-02T01:37:16.155995",
+              "twofa": null,
+              "phone_number": "+27610204616"
+            }
+          ],
+          "timestamp": "2026-02-02T01:37:45.478399",
+          "status": "completed"
         }
       ],
       "username": "lTZ_ME_ADITYA_02"
     },
     "6980326908": {
-      "balance": 800726,
+      "balance": 800727,
       "purchases": [
         {
           "country": "USA \ud83c\uddfa\ud83c\uddf8",
@@ -461,6 +476,11 @@
       "balance": 0,
       "purchases": [],
       "username": "TheRxEmpire"
+    },
+    "8457721083": {
+      "balance": 0,
+      "purchases": [],
+      "username": "User_8457721083"
     }
   },
   "accounts": {
@@ -560,6 +580,13 @@
     "8265189924": {
       "state": 0,
       "data": {}
+    },
+    "7661825494": {
+      "state": 16,
+      "data": {
+        "mode": "deduct",
+        "target_user_id": 6980326908
+      }
     }
   },
   "used_coupons": {
