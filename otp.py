@@ -531,6 +531,21 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 👋 *Welcome, {username}*
 💰 *Balance:* `{bal} INR`
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ *𝐏ʀᴇᴍɪᴜᴍ 𝐅ᴇᴀᴛᴜʀᴇs* ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌍 *Multiple Countries Available*
+⚡ *Instant OTP Delivery*
+✅ *100% Working Sessions*
+🔒 *Secure & Confidential*
+💎 *Premium Quality*
+🚀 *24/7 Support*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 *QUICK ACTIONS*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Choose:
 """
     keyboard = [
