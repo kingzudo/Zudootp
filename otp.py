@@ -37,7 +37,7 @@ SUPPORT_GROUP_LINK = "https://t.me/zudootpsupport"
 UPI_ID = "fearlessaditya@fam"
 UPI_NAME = "Aditya"
 
-# Database file
+# ✅ CRITICAL: यही वो file है जहां सब कुछ save होगा
 DB_FILE = "virtual_bot_data.json"
 
 # Membership cache (1 hour)
@@ -71,16 +71,22 @@ CACHE_DURATION = 3600
 db_lock = asyncio.Lock()
 
 def load_data():
+    """✅ Load data from JSON file"""
     if os.path.exists(DB_FILE):
         try:
             with open(DB_FILE, 'r') as f:
-                return json.load(f)
+                data = json.load(f)
+                logger.info(f"[DB LOADED] ✅ Data loaded from {DB_FILE}")
+                logger.info(f"[DB LOADED] Countries: {list(data.get('accounts', {}).keys())}")
+                return data
         except Exception as e:
-            logger.error(f"[DB LOAD ERROR] {e}")
+            logger.error(f"[DB LOAD ERROR] ❌ {e}")
             return get_default_data()
+    logger.warning(f"[DB LOAD] ⚠️ No existing file, creating new")
     return get_default_data()
 
 def get_default_data():
+    """✅ Default data structure"""
     return {
         "users": {},
         "accounts": {},
@@ -94,14 +100,15 @@ def get_default_data():
     }
 
 async def save_data_async(data_to_save):
-    """Async save with lock"""
+    """✅ CRITICAL: Async save with verification"""
     async with db_lock:
         try:
-            # Create backup
+            # Create backup before saving
             if os.path.exists(DB_FILE):
                 backup_file = f"{DB_FILE}.backup"
                 with open(DB_FILE, 'r') as src, open(backup_file, 'w') as dst:
                     dst.write(src.read())
+                logger.info(f"[DB BACKUP] ✅ Backup created: {backup_file}")
             
             # Save new data
             with open(DB_FILE, 'w') as f:
@@ -109,18 +116,45 @@ async def save_data_async(data_to_save):
             
             # Set file permissions (read-only for group/others)
             os.chmod(DB_FILE, 0o600)
+            
+            # ✅ VERIFY: Check if data was saved correctly
+            with open(DB_FILE, 'r') as f:
+                verified_data = json.load(f)
+                countries = list(verified_data.get('accounts', {}).keys())
+                total_sessions = sum(len(info.get('sessions', [])) for info in verified_data.get('accounts', {}).values())
+                
+                logger.info(f"[DB SAVED] ✅ Data saved to {DB_FILE}")
+                logger.info(f"[DB SAVED] ✅ Countries: {countries}")
+                logger.info(f"[DB SAVED] ✅ Total sessions: {total_sessions}")
+                
+                # Detailed session count per country
+                for country, info in verified_data.get('accounts', {}).items():
+                    session_count = len(info.get('sessions', []))
+                    logger.info(f"[DB SAVED]    • {country.upper()}: {session_count} sessions")
+                
         except Exception as e:
-            logger.error(f"[DB SAVE ERROR] {e}")
+            logger.error(f"[DB SAVE ERROR] ❌ {e}")
+            raise
 
 def save_data(data_to_save):
-    """Sync save"""
+    """✅ Sync save wrapper"""
     try:
         with open(DB_FILE, 'w') as f:
             json.dump(data_to_save, f, indent=2)
         os.chmod(DB_FILE, 0o600)
+        
+        logger.info(f"[DB SAVED SYNC] ✅ Data saved to {DB_FILE}")
+        
+        # Verify
+        with open(DB_FILE, 'r') as f:
+            verified = json.load(f)
+            countries = list(verified.get('accounts', {}).keys())
+            logger.info(f"[DB SAVED SYNC] ✅ Verified countries: {countries}")
+            
     except Exception as e:
-        logger.error(f"[DB SAVE ERROR] {e}")
+        logger.error(f"[DB SAVE ERROR SYNC] ❌ {e}")
 
+# ✅ Load data at startup
 data = load_data()
 
 # Initialize data structures
@@ -676,15 +710,14 @@ async def show_countries(update: Update, context: ContextTypes.DEFAULT_TYPE):
     countries = []
     keyboard = []
     
-    # ✅ FIXED: Show countries with sessions (even if quantity is 0 initially)
+    # ✅ Show countries with sessions
     for country, info in data["accounts"].items():
         session_count = len(info.get("sessions", []))
         quantity = info.get("quantity", 0)
         
-        # Show if either has quantity OR has sessions available
         if quantity > 0 or session_count > 0:
             countries.append(country)
-            display_qty = max(quantity, session_count)  # Show higher count
+            display_qty = max(quantity, session_count)
             keyboard.append([InlineKeyboardButton(
                 f"💎 {country.upper()} ({display_qty} available) - {info['price']} INR",
                 callback_data=f"country_{country}"
@@ -724,7 +757,6 @@ async def show_account_details(update: Update, context: ContextTypes.DEFAULT_TYP
     price = account_info["price"]
     balance = get_user_data(user_id)["balance"]
     
-    # ✅ Show session count if available
     available = max(account_info["quantity"], len(account_info.get("sessions", [])))
     
     text = f"""
@@ -865,7 +897,6 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("❌ Insufficient balance!", show_alert=True)
         return
     
-    # ✅ Use session count if quantity is 0
     available_sessions = account_info.get("sessions", [])
     if len(available_sessions) < quantity:
         await query.answer("❌ Not enough accounts!", show_alert=True)
@@ -885,7 +916,6 @@ async def confirm_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     data["users"][str(user_id)]["purchases"].append(purchase_record)
     
-    # ✅ Update quantity properly
     account_info["quantity"] = max(0, account_info["quantity"] - quantity)
     account_info["sessions"] = remaining_sessions
     
@@ -1015,7 +1045,7 @@ async def get_number_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """FIXED: Fetch OTP with phone number and 2FA password"""
+    """✅ Fetch OTP with phone number and 2FA password"""
     query = update.callback_query
     await query.answer("🔍 Searching OTP...")
     
@@ -1050,9 +1080,9 @@ async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(loading_text, parse_mode='Markdown')
     
     async def fetch_otp_with_phone(i, session_data):
-        """Returns OTP, phone number, AND 2FA password"""
+        """✅ Returns OTP, phone number, AND 2FA password"""
         session_string = session_data.get("session")
-        twofa_password = session_data.get("2fa", None)  # Get 2FA from session data
+        twofa_password = session_data.get("2fa", None)
         
         if session_string:
             client = None
@@ -1115,7 +1145,6 @@ async def get_otp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for i, result in enumerate(otp_results, 1):
         text += f"\n*Account {i}:*\n{result['message']}\n"
         
-        # Show 2FA password if available
         if result.get('2fa'):
             text += f"🔐 *2FA Password:* `{result['2fa']}`\n"
         
@@ -1492,7 +1521,7 @@ async def reject_fund(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await query.edit_message_text(f"❌ *Rejected user {user_id}!*", parse_mode='Markdown')
 
-# NEW FEATURE: /add command (Owner only)
+# /add command (Owner only)
 async def add_funds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Owner command: /add"""
     user_id = update.effective_user.id
@@ -1586,7 +1615,6 @@ async def handle_add_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(success_text, parse_mode='Markdown')
         
-        # Notify user
         try:
             await context.bot.send_message(
                 int(target_user_id),
@@ -1606,7 +1634,7 @@ async def handle_add_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ *Invalid! Numbers only.*", parse_mode='Markdown')
         return WAITING_FOR_ADD_AMOUNT
 
-# NEW FEATURE: /deduct command (Owner only)
+# /deduct command (Owner only)
 async def deduct_funds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Owner command: /deduct"""
     user_id = update.effective_user.id
@@ -1711,7 +1739,6 @@ async def handle_deduct_amount(update: Update, context: ContextTypes.DEFAULT_TYP
         
         await update.message.reply_text(success_text, parse_mode='Markdown')
         
-        # Notify user
         try:
             await context.bot.send_message(
                 int(target_user_id),
@@ -1808,7 +1835,7 @@ async def handle_country_input(update: Update, context: ContextTypes.DEFAULT_TYP
         set_user_state(user_id, WAITING_FOR_ADD_MORE_SESSIONS, {"country": country, "price": existing_info['price']})
         return WAITING_FOR_ADD_MORE_SESSIONS
     
-    # ✅ FIXED: Just set state, don't create country here
+    # ✅ CRITICAL: Set state first, create country in handle_price_input
     set_user_state(user_id, WAITING_FOR_PRICE, {"country": country})
     
     text = f"""
@@ -1865,6 +1892,7 @@ async def handle_add_more_choice(update: Update, context: ContextTypes.DEFAULT_T
         return WAITING_FOR_ADD_MORE_SESSIONS
 
 async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """✅ CRITICAL: Country creation और session storage यहाँ होता है"""
     user_id = update.effective_user.id
     if not is_owner(user_id):
         return ConversationHandler.END
@@ -1876,21 +1904,21 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         state = get_user_state(user_id)
         country = state["data"]["country"]
         
-        # ✅ FIXED: Create or update country ONLY here, then save immediately
+        # ✅ CRITICAL: Create or update country structure with sessions array
         if country not in data["accounts"]:
             data["accounts"][country] = {
                 "price": price,
                 "quantity": 0,
-                "sessions": []
+                "sessions": []  # ✅ यहीं sessions array बनता है!
             }
-            logger.info(f"[COUNTRY CREATED] {country} with price {price}")
+            logger.info(f"[COUNTRY CREATED] ✅ {country} with price {price}")
         else:
             data["accounts"][country]["price"] = price
-            logger.info(f"[PRICE UPDATED] {country} to {price}")
+            logger.info(f"[PRICE UPDATED] ✅ {country} to {price}")
         
-        # ✅ CRITICAL: Save immediately after creating/updating
+        # ✅ CRITICAL: Immediate save to virtual_bot_data.json
         save_data(data)
-        logger.info(f"[DATA SAVED] After creating/updating {country}")
+        logger.info(f"[DATA SAVED] ✅ After creating/updating {country}")
         
         set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": price})
         
@@ -1910,7 +1938,7 @@ async def handle_price_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return WAITING_FOR_PRICE
 
 async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """FIXED: Now asks for 2FA password"""
+    """✅ CRITICAL: Session data ko virtual_bot_data.json में save करता है"""
     user_id = update.effective_user.id
     if not is_owner(user_id):
         return ConversationHandler.END
@@ -1922,7 +1950,6 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         country = state["data"]["country"]
         clear_user_state(user_id)
         
-        # ✅ Show summary with all countries
         final_text = f"✅ *Completed for {country}!*\n\n"
         final_text += "📊 *All Countries:*\n\n"
         final_text += "\n".join([f"• *{c.upper()}*: {max(info['quantity'], len(info.get('sessions', [])))} - {info['price']} INR" 
@@ -1933,9 +1960,8 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
     
     state = get_user_state(user_id)
     
-    # Check if we're waiting for 2FA
+    # Check if waiting for 2FA
     if state["state"] == WAITING_FOR_2FA:
-        # User entered 2FA password
         twofa_password = text if text != "/skip" else None
         
         session_string = state["data"]["session_string"]
@@ -1943,7 +1969,7 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         price = state["data"]["price"]
         phone_number = state["data"]["phone_number"]
         
-        # Save session with 2FA
+        # ✅ CRITICAL: Session data बनाना
         session_data = {
             "session": session_string,
             "added": datetime.now().isoformat()
@@ -1952,12 +1978,16 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         if twofa_password:
             session_data["2fa"] = twofa_password
         
+        # ✅ CRITICAL: Session को virtual_bot_data.json में save करना
+        logger.info(f"[SESSION ADDING] 📝 Adding session to {country}")
+        logger.info(f"[SESSION ADDING] 📁 Saving to: {DB_FILE}")
+        
         data["accounts"][country]["sessions"].append(session_data)
         data["accounts"][country]["quantity"] += 1
         
-        # ✅ CRITICAL: Save immediately after adding session
+        # ✅ CRITICAL: Immediate save
         save_data(data)
-        logger.info(f"[SESSION ADDED] {country} - Total: {data['accounts'][country]['quantity']}")
+        logger.info(f"[SESSION SAVED] ✅ {country} - Total sessions: {len(data['accounts'][country]['sessions'])}")
         
         await log_session_added(context, country, 1, price, phone_number)
         
@@ -1969,13 +1999,13 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
 💰 *Price:* `{price} INR`
 🔐 *2FA:* {'Yes' if twofa_password else 'No'}
 📊 *Total:* `{data["accounts"][country]["quantity"]}`
+📁 *Saved to:* `{DB_FILE}`
 
 💡 *Add another session or `/skip`:*
         """
         
         await update.message.reply_text(response_text, parse_mode='Markdown')
         
-        # Go back to WAITING_FOR_SESSION state
         set_user_state(user_id, WAITING_FOR_SESSION, {"country": country, "price": price})
         return WAITING_FOR_SESSION
     
@@ -1998,7 +2028,6 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
         logger.error(f"[PHONE FETCH ERROR] {e}")
         phone_number = "Error fetching"
     
-    # Ask for 2FA password
     response_text = f"""
 📞 *Session Added: {phone_number}*
 
@@ -2010,7 +2039,6 @@ async def handle_session_input(update: Update, context: ContextTypes.DEFAULT_TYP
     
     await update.message.reply_text(response_text, parse_mode='Markdown')
     
-    # Save session temporarily and wait for 2FA
     set_user_state(user_id, WAITING_FOR_2FA, {
         "session_string": text,
         "country": country,
@@ -2769,14 +2797,14 @@ def get_conversation_handler():
 
 # Graceful shutdown
 async def shutdown(application: Application):
-    """Save data before shutdown"""
-    logger.info("Shutting down gracefully...")
+    """✅ Save data before shutdown"""
+    logger.info("🛑 Shutting down gracefully...")
     await save_data_async(data)
-    logger.info("Data saved. Goodbye!")
+    logger.info("💾 Data saved. Goodbye!")
 
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
-    logger.info(f"Received signal {signum}")
+    logger.info(f"⚠️ Received signal {signum}")
     sys.exit(0)
 
 # Main function
@@ -2796,19 +2824,22 @@ def main():
     application.add_error_handler(error_handler)
     
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("🔥 VIRTUAL ACCOUNT BOT - FULLY FIXED! 🔥")
+    print("🔥 VIRTUAL ACCOUNT BOT - FIXED VERSION! 🔥")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"\n👑 Owner: {OWNER_ID}")
     print(f"📊 Users: {len(data['users'])}")
     print(f"🌍 Countries: {len(data['accounts'])}")
-    print(f"\n✅ ALL FIXES APPLIED:")
-    print("   • ✅ Country shows immediately after add")
-    print("   • ✅ Immediate save after country creation")
-    print("   • ✅ Shows countries with sessions even if qty=0")
-    print("   • ✅ Proper state management")
+    print(f"\n✅ DATA STORAGE:")
+    print(f"   📁 Database File: {DB_FILE}")
+    print(f"   💾 All sessions saved in: {DB_FILE}")
+    print(f"   🔒 No external files used!")
+    print(f"\n✅ FIXES APPLIED:")
+    print("   • ✅ Sessions save to virtual_bot_data.json ONLY")
+    print("   • ✅ Immediate save after every session add")
+    print("   • ✅ Data verification after save")
+    print("   • ✅ Detailed logging for debugging")
     print("   • ✅ 2FA password support")
     print("   • ✅ /add & /deduct commands")
-    print("   • ✅ Session protection (600 permissions)")
     print(f"\n🔐 FORCE JOIN ENABLED!")
     print(f"📢 Channel: {SUPPORT_CHANNEL_LINK}")
     print(f"👥 Group: {SUPPORT_GROUP_LINK}")
@@ -2823,11 +2854,11 @@ def main():
             drop_pending_updates=True
         )
     except KeyboardInterrupt:
-        logger.info("Received keyboard interrupt")
+        logger.info("⌨️ Received keyboard interrupt")
     finally:
         # Save data on exit
         save_data(data)
-        logger.info("Bot stopped gracefully")
+        logger.info("✅ Bot stopped gracefully")
 
 if __name__ == '__main__':
     main()
