@@ -41,7 +41,7 @@
       "username": "lTZ_ME_ADITYA_02"
     },
     "6980326908": {
-      "balance": 800837,
+      "balance": 800726,
       "purchases": [
         {
           "country": "USA \ud83c\uddfa\ud83c\uddf8",
@@ -178,6 +178,36 @@
             }
           ],
           "timestamp": "2026-02-01T04:39:29.150432",
+          "status": "completed"
+        },
+        {
+          "country": "INDIAN \ud83c\uddee\ud83c\uddf3",
+          "quantity": 1,
+          "price": 35,
+          "sessions": [
+            {
+              "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
+              "added": "2026-02-01T04:42:11.402883"
+            }
+          ],
+          "timestamp": "2026-02-02T01:11:40.072308",
+          "status": "completed"
+        },
+        {
+          "country": "SOUTH AFRICA \ud83c\uddff\ud83c\udde6",
+          "quantity": 2,
+          "price": 76,
+          "sessions": [
+            {
+              "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
+              "added": "2026-01-31T20:55:10.334302"
+            },
+            {
+              "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
+              "added": "2026-01-31T20:55:13.572227"
+            }
+          ],
+          "timestamp": "2026-02-02T01:12:26.881438",
           "status": "completed"
         }
       ],
@@ -441,13 +471,8 @@
     },
     "INDIAN \ud83c\uddee\ud83c\uddf3": {
       "price": 35,
-      "quantity": 1,
-      "sessions": [
-        {
-          "session": "BQIBIGIAYptMMDBmina-V0tbdmmXVL82qHn9mZMTPbla9JMfLbhjxv62kxYs49jXlP41mzbRdE662JiQve9l1QEDcoXd4cPVS3yZbkIzcX-gf3JfPcbuU7nVba3UuELt_xHNhu80eyag4w3bdg3VveBN92P8OZ7YD51fP9oXyc5AXnLjRgMgUTTQ-yVVkulFC9nglN83h0xThe0hG8U25S8xl1sIt4oooUGSVOY_GYOLytfwQ4J1T10QMRlpoxEfbjhp4S-IQO52U5QYUFyp41WJAX4bSwhGlpYSiJ3PJT26N5FWAqXFxk5yuscZsnEizHea3LLIrLUuXl7-c6wmEfSwLpF-6gAAAAGhEOWJAA",
-          "added": "2026-02-01T04:42:11.402883"
-        }
-      ]
+      "quantity": 0,
+      "sessions": []
     },
     "ADD": {
       "price": 35,
@@ -456,17 +481,8 @@
     },
     "SOUTH AFRICA \ud83c\uddff\ud83c\udde6": {
       "price": 38,
-      "quantity": 2,
-      "sessions": [
-        {
-          "session": "BAIBIGIAGzlHhut5i6swKmgPZm3lyhM800JnDaOreIMt9H6kZo3ec3aysYsUfOhiIfW-ON63RDlkYbydLpwoIVVGwqssjkW7bzZL5uVS1jxD4xHb1OHam4TtEaTVW_6wtunu4V0wrSWDWev-v-J5hp6kUr9M0S2ctPP8zWYoOslyYkF9hH4LWXrMYNLZfot838t96lgO-ZWQ2lm-4y-oXuih9QyCZTZK08iX1nNAaUozHhK8-ft_GLhrzzgUZH1U450nDRIu5K5veLgfk5x4KwMmHCPdsVhSeCd2Nq0Me_71GWzU2uUv8Knd5oldzER7VdNpWJCIFp_BojbAZXGnI-HlHn_zHQAAAAH_lAJEAA",
-          "added": "2026-01-31T20:55:10.334302"
-        },
-        {
-          "session": "BAIBIGIAmtFi3mFRDv0nDPI18ys4y-8ZGIGWaqQq5H3msW_Ye8lxFJazKPaltxJefsE-n9U_-XKHiL4vGLC2p8WsCDHIRLO3oTSbN0EBQ79hU9ZzcWzLXYB1_IKXjqRwkEl8CPotva28cRZ__o5xO9mdxhLRSoe1i-REL2S5NoaIa-QRPfAfoRtmnSMIzIcxCR97CGwfAe4b0uJ0ZCjJzOzBDWRc0SzbyzRwHJnrnf7q1crEGGKpxEC6-S_KEchcl-i3TVo0jkISVTNG89ZjMTDiBzYiLXQkojKH6pGgC7ljZLQPZ2XhH6urgS-tnpj0bemR9rvG1pOxqwenH793UzaQlImEpgAAAAH_O3H6AA",
-          "added": "2026-01-31T20:55:13.572227"
-        }
-      ]
+      "quantity": 0,
+      "sessions": []
     }
   },
   "discount_codes": {},
@@ -479,8 +495,8 @@
   },
   "pending_payments": {
     "7661825494": {
-      "amount": 40,
-      "timestamp": "2026-02-01T12:53:51.383489",
+      "amount": 10,
+      "timestamp": "2026-02-02T01:10:33.432104",
       "status": "waiting_screenshot"
     },
     "6980326908": {
@@ -543,10 +559,6 @@
     },
     "8265189924": {
       "state": 0,
-      "data": {}
-    },
-    "6980326908": {
-      "state": 1,
       "data": {}
     }
   },
